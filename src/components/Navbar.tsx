@@ -1,10 +1,10 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LogOut, Users, Shield, QrCode, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { LogOut, Users, Shield, QrCode, CheckCircle2 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
-  const { userSession, logout, attendees, resetToDefault } = useApp();
+  const { userSession, logout, attendees } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -13,29 +13,26 @@ export const Navbar: React.FC = () => {
   }
 
   const presentCount = attendees.filter(a => a.isPresent).length;
-  const vipPresentCount = attendees.filter(a => a.level === 'VIP' && a.isPresent).length;
-  const vipCount = attendees.filter(a => a.level === 'VIP').length;
-  const espPresentCount = attendees.filter(a => a.level === 'ESPECIAL' && a.isPresent).length;
-  const espCount = attendees.filter(a => a.level === 'ESPECIAL').length;
 
   return (
     <>
       {/* Top Header Bar */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 px-3 sm:px-6 py-2.5 transition-all">
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 px-3 sm:px-6 py-2 transition-all">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
-          {/* Brand Logo & Event Name */}
+          {/* Official Logo & Brand */}
           <div className="flex items-center space-x-2.5 cursor-pointer" onClick={() => navigate('/')}>
-            <div className="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center font-black text-sm shadow-sm shrink-0">
-              H
-            </div>
-            <div>
-              <div className="flex items-center space-x-1.5">
-                <h1 className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight">HELPER</h1>
-                <span className="text-[9px] sm:text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-50 text-amber-800 border border-amber-200 uppercase">
-                  Imersão Rise
-                </span>
-              </div>
-              <p className="text-[10px] sm:text-xs text-slate-500 truncate">Teacher Ana de Araújo</p>
+            <img
+              src="/logo-imersao-rise.png"
+              alt="Imersão Rise"
+              className="h-8 sm:h-9 object-contain"
+              onError={(e) => {
+                // Fallback to URL if local image loading fails
+                (e.target as HTMLImageElement).src = "https://teacherana.com.br/wp-content/uploads/IMERSAO2026/imersao%20rise/assets/LOGO%20IMERSAO%20PNG.png";
+              }}
+            />
+            <div className="hidden sm:block border-l border-slate-300 pl-2.5">
+              <h1 className="text-xs font-black text-slate-900 tracking-tight leading-none">HELPER</h1>
+              <p className="text-[10px] text-slate-500 font-medium">Intel de Vendas</p>
             </div>
           </div>
 

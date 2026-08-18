@@ -37,15 +37,20 @@ export const LoginPage: React.FC = () => {
   return (
     <div className="min-h-[85vh] flex flex-col items-center justify-center px-4 py-6 bg-slate-50">
       <div className="w-full max-w-sm sm:max-w-md">
-        {/* Header Branding */}
+        {/* Header Branding with Official Logo */}
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-slate-900 text-white font-black text-xl shadow-sm mb-3">
-            H
-          </div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
-            Imersão Rise • Barueri
+          <img
+            src="/logo-imersao-rise.png"
+            alt="Imersão Rise • Teacher Ana de Araújo"
+            className="h-16 sm:h-20 mx-auto object-contain mb-2"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = "https://teacherana.com.br/wp-content/uploads/IMERSAO2026/imersao%20rise/assets/LOGO%20IMERSAO%20PNG.png";
+            }}
+          />
+          <h1 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">
+            HELPER • Barueri/SP
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-500 mt-0.5">
             Sistema de Inteligência para Closers & Credenciamento da Recepção
           </p>
         </div>

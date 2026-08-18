@@ -28,22 +28,23 @@ export const PublicBadgePage: React.FC = () => {
     <div className="min-h-screen bg-slate-100 flex flex-col items-center justify-center p-4 font-sans">
       {/* Main Digital Badge Card */}
       <div className="w-full max-w-sm">
-        <div className="clean-card rounded-3xl p-6 sm:p-8 bg-white border border-slate-200 shadow-md text-center space-y-6 relative">
+        <div className="clean-card rounded-3xl p-6 sm:p-8 bg-white border border-slate-200 shadow-md text-center space-y-5 relative">
           {/* Top Hole Visual */}
-          <div className="w-12 h-2.5 bg-slate-200 rounded-full mx-auto mb-2 border border-slate-300" />
+          <div className="w-12 h-2.5 bg-slate-200 rounded-full mx-auto mb-1 border border-slate-300" />
 
-          {/* Header */}
-          <div className="border-b border-slate-100 pb-4 flex items-center justify-between text-left">
-            <div>
-              <span className="text-[10px] font-extrabold tracking-widest text-slate-400 uppercase block">
-                Credencial Oficial
-              </span>
-              <span className="text-sm font-bold text-slate-900">IMERSÃO RISE</span>
-            </div>
-            <div className="text-right">
-              <span className="text-[10px] text-slate-400 block">Barueri • SP</span>
-              <span className="text-[10px] font-semibold text-slate-600">Teacher Ana de Araújo</span>
-            </div>
+          {/* Header with Official Event Logo */}
+          <div className="border-b border-slate-100 pb-4 text-center">
+            <img
+              src="/logo-imersao-rise.png"
+              alt="Imersão Rise"
+              className="h-12 mx-auto object-contain mb-1"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = "https://teacherana.com.br/wp-content/uploads/IMERSAO2026/imersao%20rise/assets/LOGO%20IMERSAO%20PNG.png";
+              }}
+            />
+            <span className="text-[10px] font-extrabold tracking-widest text-slate-400 uppercase block">
+              Credencial Oficial • Barueri/SP
+            </span>
           </div>
 
           {/* Avatar Photo */}
@@ -77,7 +78,7 @@ export const PublicBadgePage: React.FC = () => {
           </div>
         </div>
 
-        <div className="text-center mt-6">
+        <div className="text-center mt-5">
           <p className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">
             Imersão Rise • O Maior Evento para Professores de Idiomas
           </p>
