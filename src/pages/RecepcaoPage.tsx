@@ -3,6 +3,7 @@ import { useApp } from '../context/AppContext';
 import { BadgePill } from '../components/BadgePill';
 import { Search, CheckCircle2, UserCheck } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { getBadgeLevel } from '../types/index';
 
 export const RecepcaoPage: React.FC = () => {
   const { attendees, toggleCheckIn } = useApp();
@@ -44,7 +45,7 @@ export const RecepcaoPage: React.FC = () => {
             Recepção & Credenciamento
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Controle de presença e entrega de crachás (VIP, SILVER e ESPECIAL)
+            Entrega de Crachás: VIP (Dourado), SILVER (Prata) e ESPECIAL (Mentorado VIP / Patrocinador)
           </p>
         </div>
 
@@ -99,70 +100,77 @@ export const RecepcaoPage: React.FC = () => {
 
       {/* Reception Mobile List Cards */}
       <div className="space-y-2.5">
-        {filteredAttendees.map(item => (
-          <div
-            key={item.id}
-            className={`clean-card p-3.5 sm:p-4 rounded-2xl bg-white border transition flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-              item.isPresent ? 'border-emerald-200 bg-emerald-50/20' : 'border-slate-200'
-            }`}
-          >
-            {/* Left Info */}
-            <div className="flex items-center space-x-3">
-              <img
-                src={item.photoUrl}
-                alt={item.name}
-                className="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0"
-              />
-              <div className="space-y-1 min-w-0">
-                <div className="flex items-center space-x-2">
-                  <h2 className="text-sm font-extrabold text-slate-900 truncate">{item.name}</h2>
-                  <BadgePill level={item.level} size="sm" />
-                </div>
-                <div className="flex flex-wrap items-center gap-1.5 text-xs">
-                  <span
-                    className={`font-bold text-[10px] px-2 py-0.5 rounded border uppercase ${
-                      item.level === 'VIP'
-                        ? 'bg-amber-50 text-amber-800 border-amber-200'
-                        : item.level === 'ESPECIAL'
-                        ? 'bg-blue-50 text-blue-800 border-blue-200'
-                        : 'bg-slate-100 text-slate-700 border-slate-200'
-                    }`}
-                  >
-                    Crachá: {item.level}
-                  </span>
+        {filteredAttendees.map(item => {
+          const badgeToDeliver = getBadgeLevel(item);
 
-                  {item.isPresent && (
-                    <span className="text-emerald-700 font-bold text-[10px]">
-                      • Presença às {item.checkInTime || 'Agora'}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Touch-Friendly Check-in Button */}
-            <button
-              onClick={() => handleCheckInToggle(item.id, item.isPresent)}
-              className={`w-full sm:w-auto px-4 py-3 rounded-xl font-extrabold text-xs flex items-center justify-center space-x-2 transition shadow-sm min-h-[44px] ${
-                item.isPresent
-                  ? 'bg-slate-100 hover:bg-rose-50 text-emerald-700 border border-slate-200'
-                  : 'bg-slate-900 hover:bg-slate-800 text-white'
+          return (
+            <div
+              key={item.id}
+              className={`clean-card p-3.5 sm:p-4 rounded-2xl bg-white border transition flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                item.isPresent ? 'border-emerald-200 bg-emerald-50/20' : 'border-slate-200'
               }`}
             >
-              {item.isPresent ? (
-                <>
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  <span>Presença Confirmada</span>
-                </>
-              ) : (
-                <>
-                  <UserCheck className="w-4 h-4" />
-                  <span>Confirmar Presença</span>
-                </>
-              )}
-            </button>
-          </div>
-        ))}
+              {/* Left Info */}
+              <div className="flex items-center space-x-3">
+                <img
+                  src={item.photoUrl}
+                  alt={item.name}
+                  className="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0"
+                />
+                <div className="space-y-1 min-w-0">
+                  <div className="flex items-center space-x-2">
+                    <h2 className="text-sm font-extrabold text-slate-900 truncate">{item.name}</h2>
+                    <BadgePill level={badgeToDeliver} size="sm" />
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                    <span
+                      className={`font-bold text-[10px] px-2 py-0.5 rounded border uppercase ${
+                        badgeToDeliver === 'ESPECIAL'
+                          ? 'bg-blue-50 text-blue-800 border-blue-200'
+                          : badgeToDeliver === 'VIP'
+                          ? 'bg-amber-50 text-amber-800 border-amber-200'
+                          : 'bg-slate-100 text-slate-700 border-slate-200'
+                      }`}
+                    >
+                      Entregar Crachá: {badgeToDeliver}{' '}
+                      {badgeToDeliver === 'ESPECIAL' &&
+                        (item.isSponsor ? '(Patrocinador)' : '(VIP Mentorado)')}
+                    </span>
+
+                    {item.isPresent && (
+                      <span className="text-emerald-700 font-bold text-[10px]">
+                        • Presença às {item.checkInTime || 'Agora'}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Touch-Friendly Check-in Button */}
+              <button
+                onClick={() => handleCheckInToggle(item.id, item.isPresent)}
+                className={`w-full sm:w-auto px-4 py-3 rounded-xl font-extrabold text-xs flex items-center justify-center space-x-2 transition shadow-sm min-h-[44px] ${
+                  item.isPresent
+                    ? 'bg-slate-100 hover:bg-rose-50 text-emerald-700 border border-slate-200'
+                    : 'bg-slate-900 hover:bg-slate-800 text-white'
+                }`}
+              >
+                {item.isPresent ? (
+                  <>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <span>Presença Confirmada</span>
+                  </>
+                ) : (
+                  <>
+                    <UserCheck className="w-4 h-4" />
+                    <span>Confirmar Presença</span>
+                  </>
+                )}
+              </button>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

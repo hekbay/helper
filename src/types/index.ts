@@ -1,3 +1,4 @@
+export type TicketLevel = 'VIP' | 'SILVER';
 export type BadgeLevel = 'VIP' | 'SILVER' | 'ESPECIAL';
 export type ConfirmationStatus = 'CONFIRMED' | 'AWAITING';
 
@@ -14,7 +15,8 @@ export interface Attendee {
   email: string;
   phone: string;
   instagram: string;
-  level: BadgeLevel;
+  level: TicketLevel;
+  isSponsor?: boolean;
   status: ConfirmationStatus;
   isFlexge?: boolean;
   isMeteoric?: boolean;
@@ -27,6 +29,19 @@ export interface Attendee {
   closerNotes: CloserNote[];
 }
 
+/**
+ * Calcula o crachá físico entregue na recepção e exibido no QR Code:
+ * - ESPECIAL (Azul Safira): Se for Patrocinador OU (Ingresso VIP + Mentorado)
+ * - VIP (Dourado): Ingresso VIP que AINDA NÃO é mentorado
+ * - SILVER (Prata): Ingresso SILVER
+ */
+export function getBadgeLevel(attendee: Attendee): BadgeLevel {
+  if (attendee.isSponsor || (attendee.level === 'VIP' && attendee.isMentee)) {
+    return 'ESPECIAL';
+  }
+  return attendee.level;
+}
+
 export type UserRole = 'CLOSER' | 'RECEPCAO' | null;
 
 export interface UserSession {
@@ -35,9 +50,8 @@ export interface UserSession {
   loggedInAt?: string;
 }
 
-// Runtime helper constants to ensure ES Module export presence
 export const BADGE_COLORS = {
   VIP: '#F59E0B',
   SILVER: '#94A3B8',
-  ESPECIAL: '#2563EB' // Azul Safira
+  ESPECIAL: '#2563EB'
 } as const;

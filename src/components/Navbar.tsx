@@ -2,6 +2,7 @@ import React from 'react';
 import { useApp } from '../context/AppContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { LogOut, Users, Shield, QrCode, CheckCircle2 } from 'lucide-react';
+import { getBadgeLevel } from '../types/index';
 
 export const Navbar: React.FC = () => {
   const { userSession, logout, attendees } = useApp();
@@ -13,6 +14,10 @@ export const Navbar: React.FC = () => {
   }
 
   const presentCount = attendees.filter(a => a.isPresent).length;
+  const vipBadgePresent = attendees.filter(a => getBadgeLevel(a) === 'VIP' && a.isPresent).length;
+  const vipBadgeTotal = attendees.filter(a => getBadgeLevel(a) === 'VIP').length;
+  const espBadgePresent = attendees.filter(a => getBadgeLevel(a) === 'ESPECIAL' && a.isPresent).length;
+  const espBadgeTotal = attendees.filter(a => getBadgeLevel(a) === 'ESPECIAL').length;
 
   return (
     <>
@@ -26,7 +31,6 @@ export const Navbar: React.FC = () => {
               alt="Imersão Rise"
               className="h-8 sm:h-9 object-contain"
               onError={(e) => {
-                // Fallback to URL if local image loading fails
                 (e.target as HTMLImageElement).src = "https://teacherana.com.br/wp-content/uploads/IMERSAO2026/imersao%20rise/assets/LOGO%20IMERSAO%20PNG.png";
               }}
             />
@@ -38,12 +42,18 @@ export const Navbar: React.FC = () => {
 
           {/* Realtime Stats Pills */}
           <div className="flex items-center space-x-2 text-xs">
-            <div className="flex items-center space-x-1 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200 font-medium text-slate-700">
+            <div className="flex items-center space-x-1.5 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200 font-medium text-slate-700">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
               <span>
-                <strong className="text-slate-900 font-bold">{presentCount}</strong>
+                Presença: <strong className="text-slate-900 font-bold">{presentCount}</strong>
                 <span className="text-slate-400">/{attendees.length}</span>
               </span>
+            </div>
+
+            <div className="hidden lg:flex items-center space-x-2 text-[11px] text-slate-600 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200">
+              <span>VIPs: <strong className="text-amber-800">{vipBadgePresent}/{vipBadgeTotal}</strong></span>
+              <span className="text-slate-300">•</span>
+              <span>Especial: <strong className="text-blue-800">{espBadgePresent}/{espBadgeTotal}</strong></span>
             </div>
 
             {userSession.role && (
@@ -75,7 +85,7 @@ export const Navbar: React.FC = () => {
         </div>
       </header>
 
-      {/* Mobile Bottom Navigation Bar (Sticky for quick thumb access on phones) */}
+      {/* Mobile Bottom Navigation Bar */}
       {userSession.role && (
         <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200 px-4 py-2 flex items-center justify-around shadow-lg md:hidden">
           <button

@@ -74,6 +74,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             phone: item.phone || '',
             instagram: item.instagram || '',
             level: item.level as any,
+            specialRole: item.special_role as any,
             status: item.status as any,
             isFlexge: item.is_flexge,
             isMeteoric: item.is_meteoric,

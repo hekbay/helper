@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
-import type { Attendee, BadgeLevel } from '../types/index';
 import { BadgePill } from '../components/BadgePill';
 import {
   Search,
@@ -18,6 +17,7 @@ import {
   Award,
   BookOpen
 } from 'lucide-react';
+import { getBadgeLevel, BadgeLevel } from '../types/index';
 
 const InstagramIcon: React.FC<{ className?: string }> = ({ className = "w-4 h-4" }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -31,9 +31,10 @@ export const ClosersPage: React.FC = () => {
   const { attendees, addCloserNote, userSession } = useApp();
 
   const [search, setSearch] = useState('');
-  const [levelFilter, setLevelFilter] = useState<'ALL' | BadgeLevel>('ALL');
+  const [badgeFilter, setBadgeFilter] = useState<'ALL' | BadgeLevel>('ALL');
   const [presentOnly, setPresentOnly] = useState(false);
   const [menteeOnly, setMenteeOnly] = useState(false);
+  const [nonMenteeVipOnly, setNonMenteeVipOnly] = useState(false);
   const [renewalOnly, setRenewalOnly] = useState(false);
 
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -50,14 +51,23 @@ export const ClosersPage: React.FC = () => {
         item.instagram.toLowerCase().includes(q) ||
         item.expertNote.toLowerCase().includes(q);
 
-      const matchesLevel = levelFilter === 'ALL' || item.level === levelFilter;
+      const calculatedBadge = getBadgeLevel(item);
+      const matchesBadge = badgeFilter === 'ALL' || calculatedBadge === badgeFilter;
       const matchesPresent = !presentOnly || item.isPresent;
       const matchesMentee = !menteeOnly || item.isMentee;
+      const matchesNonMenteeVip = !nonMenteeVipOnly || (item.level === 'VIP' && !item.isMentee);
       const matchesRenewal = !renewalOnly || item.nearRenewal;
 
-      return matchesSearch && matchesLevel && matchesPresent && matchesMentee && matchesRenewal;
+      return (
+        matchesSearch &&
+        matchesBadge &&
+        matchesPresent &&
+        matchesMentee &&
+        matchesNonMenteeVip &&
+        matchesRenewal
+      );
     });
-  }, [attendees, search, levelFilter, presentOnly, menteeOnly, renewalOnly]);
+  }, [attendees, search, badgeFilter, presentOnly, menteeOnly, nonMenteeVipOnly, renewalOnly]);
 
   const toggleExpand = (id: string) => {
     setExpandedId(prev => (prev === id ? null : id));
@@ -112,25 +122,42 @@ export const ClosersPage: React.FC = () => {
           )}
         </div>
 
-        {/* Horizontally Scrollable Filter Tabs for Mobile */}
+        {/* Horizontally Scrollable Badge Filter Tabs */}
         <div className="flex items-center space-x-1.5 overflow-x-auto no-scrollbar py-0.5">
           {(['ALL', 'VIP', 'SILVER', 'ESPECIAL'] as const).map(lvl => (
             <button
               key={lvl}
-              onClick={() => setLevelFilter(lvl)}
+              onClick={() => setBadgeFilter(lvl)}
               className={`px-3.5 py-2 rounded-xl text-xs font-bold transition shrink-0 ${
-                levelFilter === lvl
+                badgeFilter === lvl
                   ? 'bg-slate-900 text-white shadow-sm'
                   : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
               }`}
             >
-              {lvl === 'ALL' ? 'Todos Ingressos' : lvl}
+              {lvl === 'ALL'
+                ? 'Todos Crachás'
+                : lvl === 'ESPECIAL'
+                ? 'ESPECIAL (VIP Mentorado)'
+                : `Crachá ${lvl}`}
             </button>
           ))}
         </div>
 
         {/* Quick Toggles */}
         <div className="flex items-center space-x-2 overflow-x-auto no-scrollbar py-0.5 text-xs">
+          <button
+            onClick={() => setNonMenteeVipOnly(!nonMenteeVipOnly)}
+            className={`px-3 py-1.5 rounded-lg border flex items-center space-x-1.5 shrink-0 transition font-bold ${
+              nonMenteeVipOnly
+                ? 'bg-amber-100 text-amber-900 border-amber-300'
+                : 'bg-white text-slate-700 border-slate-200'
+            }`}
+            title="VIPs que ainda não são mentorados (Alvos para fechamento no Pitch)"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+            <span>🔥 VIPs Não-Mentorados</span>
+          </button>
+
           <button
             onClick={() => setPresentOnly(!presentOnly)}
             className={`px-3 py-1.5 rounded-lg border flex items-center space-x-1.5 shrink-0 transition font-medium ${
@@ -152,7 +179,7 @@ export const ClosersPage: React.FC = () => {
             }`}
           >
             <UserCheck className="w-3.5 h-3.5 text-indigo-600" />
-            <span>Mentorados</span>
+            <span>Já Mentorados</span>
           </button>
 
           <button
@@ -167,13 +194,14 @@ export const ClosersPage: React.FC = () => {
             <span>Renovação Próxima</span>
           </button>
 
-          {(presentOnly || menteeOnly || renewalOnly || levelFilter !== 'ALL' || search) && (
+          {(presentOnly || menteeOnly || nonMenteeVipOnly || renewalOnly || badgeFilter !== 'ALL' || search) && (
             <button
               onClick={() => {
                 setPresentOnly(false);
                 setMenteeOnly(false);
+                setNonMenteeVipOnly(false);
                 setRenewalOnly(false);
-                setLevelFilter('ALL');
+                setBadgeFilter('ALL');
                 setSearch('');
               }}
               className="text-xs text-rose-600 hover:underline px-2 py-1 shrink-0 font-medium"
@@ -191,9 +219,10 @@ export const ClosersPage: React.FC = () => {
           <button
             onClick={() => {
               setSearch('');
-              setLevelFilter('ALL');
+              setBadgeFilter('ALL');
               setPresentOnly(false);
               setMenteeOnly(false);
+              setNonMenteeVipOnly(false);
               setRenewalOnly(false);
             }}
             className="text-xs text-slate-900 font-bold underline"
@@ -205,6 +234,7 @@ export const ClosersPage: React.FC = () => {
         <div className="space-y-3">
           {filteredAttendees.map(item => {
             const isExpanded = expandedId === item.id;
+            const calculatedBadge = getBadgeLevel(item);
             const whatsappNumber = item.phone.replace(/\D/g, '');
             const whatsappUrl = `https://wa.me/55${whatsappNumber}?text=${encodeURIComponent(
               `Olá ${item.name.split(' ')[0]}! Tudo bem? Sou da equipe da Teacher Ana de Araújo na Imersão Rise...`
@@ -237,7 +267,7 @@ export const ClosersPage: React.FC = () => {
                       <div className="min-w-0 space-y-0.5">
                         <div className="flex items-center space-x-1.5">
                           <h2 className="text-sm font-extrabold text-slate-900 truncate leading-tight">{item.name}</h2>
-                          <BadgePill level={item.level} size="sm" />
+                          <BadgePill level={calculatedBadge} size="sm" />
                         </div>
 
                         <div className="flex items-center space-x-2 text-xs">
@@ -248,6 +278,8 @@ export const ClosersPage: React.FC = () => {
                           ) : (
                             <span className="text-[10px] font-medium text-slate-400">Ausente</span>
                           )}
+                          <span className="text-slate-300">•</span>
+                          <span className="text-[10px] font-semibold text-slate-500">Ingresso: {item.level}</span>
                         </div>
                       </div>
                     </div>
@@ -264,24 +296,35 @@ export const ClosersPage: React.FC = () => {
                     </a>
                   </div>
 
-                  {/* Mentee & Renewal Badges */}
-                  {(item.isMentee || item.nearRenewal) && (
-                    <div className="flex flex-wrap items-center gap-1.5 text-xs pt-0.5">
-                      {item.isMentee && (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center space-x-1">
-                          <Award className="w-3 h-3 text-indigo-600" />
-                          <span>Mentorado</span>
-                        </span>
-                      )}
+                  {/* Context Badges (Mentee vs VIP Non-Mentee Pitch Target) */}
+                  <div className="flex flex-wrap items-center gap-1.5 text-xs pt-0.5">
+                    {item.level === 'VIP' && !item.isMentee && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300 flex items-center space-x-1">
+                        <Sparkles className="w-3 h-3 text-amber-700" />
+                        <span>🔥 VIP Não-Mentorado (Alvo de Venda)</span>
+                      </span>
+                    )}
 
-                      {item.nearRenewal && (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200 flex items-center space-x-1">
-                          <RotateCw className="w-3 h-3 text-rose-600" />
-                          <span>Renovação Próxima</span>
-                        </span>
-                      )}
-                    </div>
-                  )}
+                    {item.isMentee && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-200 flex items-center space-x-1">
+                        <Award className="w-3 h-3 text-blue-600" />
+                        <span>👑 Mentorado VIP (Crachá ESPECIAL)</span>
+                      </span>
+                    )}
+
+                    {item.isSponsor && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-800 border border-indigo-200">
+                        🤝 Patrocinador
+                      </span>
+                    )}
+
+                    {item.nearRenewal && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200 flex items-center space-x-1">
+                        <RotateCw className="w-3 h-3 text-rose-600" />
+                        <span>Renovação Próxima</span>
+                      </span>
+                    )}
+                  </div>
 
                   {/* Expert Note Teaser */}
                   <div className="p-3 rounded-xl bg-amber-50/70 border border-amber-200/80 text-xs text-slate-800 flex items-start space-x-2">

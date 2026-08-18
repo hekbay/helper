@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { BadgePill } from '../components/BadgePill';
 import { Award, CheckCircle2, QrCode } from 'lucide-react';
+import { getBadgeLevel } from '../types/index';
 
 export const PublicBadgePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -23,6 +24,8 @@ export const PublicBadgePage: React.FC = () => {
       </div>
     );
   }
+
+  const badgeLevel = getBadgeLevel(attendee);
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col items-center justify-center p-4 font-sans">
@@ -67,7 +70,7 @@ export const PublicBadgePage: React.FC = () => {
               {attendee.name}
             </h1>
             <div className="flex justify-center pt-1">
-              <BadgePill level={attendee.level} size="lg" />
+              <BadgePill level={badgeLevel} size="lg" />
             </div>
           </div>
 
