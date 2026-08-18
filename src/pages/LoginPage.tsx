@@ -19,14 +19,14 @@ export const LoginPage: React.FC = () => {
 
     if (selectedRole === 'CLOSER') {
       if (pin && pin !== '102030' && pin !== '1234') {
-        setError('PIN incorreto para Closers! (PIN correto: 102030)');
+        setError('PIN incorreto para o perfil de Closers! Tente novamente.');
         return;
       }
       login('CLOSER', userName || 'Closer Rise');
       navigate('/closers');
     } else if (selectedRole === 'RECEPCAO') {
       if (pin && pin !== '5555' && pin !== '555') {
-        setError('PIN incorreto para Recepção! (PIN correto: 5555)');
+        setError('PIN incorreto para o perfil da Recepção! Tente novamente.');
         return;
       }
       login('RECEPCAO', userName || 'Equipe Recepção');
@@ -124,14 +124,9 @@ export const LoginPage: React.FC = () => {
 
             {/* PIN Security Code */}
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-xs font-bold text-slate-700">
-                  PIN de Acesso
-                </label>
-                <span className="text-[11px] text-slate-500 font-mono font-bold">
-                  {selectedRole === 'CLOSER' ? 'PIN: 102030' : 'PIN: 5555'}
-                </span>
-              </div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                PIN de Acesso
+              </label>
               <div className="relative">
                 <input
                   type="password"
