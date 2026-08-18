@@ -14,8 +14,8 @@ import {
   Phone,
   Mail,
   ExternalLink,
-  Award,
   BookOpen
+} from 'lucide-react';
 import type { Attendee, BadgeLevel } from '../types/index';
 import { getBadgeLevel } from '../types/index';
 
