@@ -16,8 +16,8 @@ import {
   ExternalLink,
   Award,
   BookOpen
-} from 'lucide-react';
-import { getBadgeLevel, BadgeLevel } from '../types/index';
+import type { Attendee, BadgeLevel } from '../types/index';
+import { getBadgeLevel } from '../types/index';
 
 const InstagramIcon: React.FC<{ className?: string }> = ({ className = "w-4 h-4" }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -298,23 +298,23 @@ export const ClosersPage: React.FC = () => {
 
                   {/* Context Badges (Mentee vs VIP Non-Mentee Pitch Target) */}
                   <div className="flex flex-wrap items-center gap-1.5 text-xs pt-0.5">
-                    {item.level === 'VIP' && !item.isMentee && (
+                    {item.level === 'VIP' && !item.isSpecial && !item.isSponsor && (
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300 flex items-center space-x-1">
                         <Sparkles className="w-3 h-3 text-amber-700" />
-                        <span>🔥 VIP Não-Mentorado (Alvo de Venda)</span>
+                        <span>🔥 Crachá VIP (Alvo no Pitch)</span>
                       </span>
                     )}
 
-                    {item.isMentee && (
+                    {item.level === 'VIP' && item.isSpecial && (
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-200 flex items-center space-x-1">
                         <Award className="w-3 h-3 text-blue-600" />
-                        <span>👑 Mentorado VIP (Crachá ESPECIAL)</span>
+                        <span>⭐ VIP Especial (Crachá Azul)</span>
                       </span>
                     )}
 
                     {item.isSponsor && (
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-800 border border-indigo-200">
-                        🤝 Patrocinador
+                        🤝 Patrocinador (Crachá Azul)
                       </span>
                     )}
 

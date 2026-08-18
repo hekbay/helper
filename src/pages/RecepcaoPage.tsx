@@ -135,7 +135,7 @@ export const RecepcaoPage: React.FC = () => {
                     >
                       Entregar Crachá: {badgeToDeliver}{' '}
                       {badgeToDeliver === 'ESPECIAL' &&
-                        (item.isSponsor ? '(Patrocinador)' : '(VIP Mentorado)')}
+                        (item.isSponsor ? '(Patrocinador)' : '(VIP Especial)')}
                     </span>
 
                     {item.isPresent && (

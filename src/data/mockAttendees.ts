@@ -7,7 +7,8 @@ export const INITIAL_ATTENDEES: Attendee[] = [
     email: 'carolina.mendes@englishteach.com',
     phone: '(11) 98765-4321',
     instagram: '@carol.englishtips',
-    level: 'VIP', // VIP + Mentorada = Crachá ESPECIAL
+    level: 'VIP',
+    isSpecial: true, // VIP Especial -> Crachá Especial Azul
     status: 'CONFIRMED',
     isFlexge: true,
     isPresent: true,
@@ -15,7 +16,7 @@ export const INITIAL_ATTENDEES: Attendee[] = [
     isMentee: true,
     nearRenewal: true,
     photoUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&auto=format&fit=crop&q=80',
-    expertNote: 'Professora de Business English em expansão. Faturando R$ 15k/mês. Ingresso VIP e já é Mentorada. Prioridade para upsell do Mastermind.',
+    expertNote: 'Professora de Business English em expansão. Faturando R$ 15k/mês. Ingresso VIP com perfil ESPECIAL. Prioridade para upsell do Mastermind.',
     closerNotes: [
       {
         id: 'n1',
@@ -31,14 +32,15 @@ export const INITIAL_ATTENDEES: Attendee[] = [
     email: 'roberto@idiomaselite.com.br',
     phone: '(21) 99887-1122',
     instagram: '@prof.robertomagalhaes',
-    level: 'VIP', // VIP + Mentorado = Crachá ESPECIAL
+    level: 'VIP',
+    isSpecial: true, // VIP Especial -> Crachá Especial Azul
     status: 'CONFIRMED',
     isPresent: true,
     checkInTime: '08:30',
     isMentee: true,
     nearRenewal: false,
     photoUrl: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&auto=format&fit=crop&q=80',
-    expertNote: 'Ingresso VIP / Mentorado de Alta Performance. Possui escola física com 300 alunos em Niterói e quer digitalizar totalmente.',
+    expertNote: 'Ingresso VIP / Perfil ESPECIAL (Mentorado High Performance). Possui escola física com 300 alunos em Niterói e quer digitalizar totalmente.',
     closerNotes: []
   },
   {
@@ -47,14 +49,15 @@ export const INITIAL_ATTENDEES: Attendee[] = [
     email: 'fernanda@teachersclub.com',
     phone: '(19) 97112-3344',
     instagram: '@fer.englishcoach',
-    level: 'VIP', // VIP + NÃO Mentorada = Crachá VIP Dourado (Lead Quente!)
+    level: 'VIP',
+    isSpecial: false, // VIP Padrão -> Crachá VIP Amarelo/Dourado (Lead Quente!)
     status: 'CONFIRMED',
     isPresent: true,
     checkInTime: '08:50',
     isMentee: false,
     nearRenewal: false,
     photoUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&auto=format&fit=crop&q=80',
-    expertNote: 'Ingresso VIP (AINDA NÃO É MENTORADA!). Lead quentíssima de alta renda. Esteve no evento anterior no Silver e agora subiu para VIP. Abordagem prioritária para Pitch da Mentoria.',
+    expertNote: 'Ingresso VIP Padrão (CRACHÁ VIP DOURADO). Lead quentíssima de alta renda! Esteve no evento anterior no Silver e agora subiu para VIP. Abordagem prioritária no Pitch.',
     closerNotes: []
   },
   {
@@ -64,7 +67,7 @@ export const INITIAL_ATTENDEES: Attendee[] = [
     phone: '(11) 97777-8888',
     instagram: '@flexge.oficial',
     level: 'VIP',
-    isSponsor: true, // Patrocinador = Crachá ESPECIAL
+    isSponsor: true, // Patrocinador -> Crachá Especial Azul
     status: 'CONFIRMED',
     isFlexge: true,
     isPresent: true,
@@ -72,7 +75,7 @@ export const INITIAL_ATTENDEES: Attendee[] = [
     isMentee: false,
     nearRenewal: false,
     photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
-    expertNote: 'Patrocinador Oficial do Evento (Flexge Platform). Conexão estratégica para parcerias e integração com alunos VIP.',
+    expertNote: 'Patrocinador Oficial do Evento (Flexge Platform). Conexão estratégica para parcerias.',
     closerNotes: []
   },
   {
@@ -81,7 +84,8 @@ export const INITIAL_ATTENDEES: Attendee[] = [
     email: 'juliana.paes@englishflow.com',
     phone: '(31) 99123-4567',
     instagram: '@ju.englishflow',
-    level: 'VIP', // VIP + Mentorada = Crachá ESPECIAL
+    level: 'VIP',
+    isSpecial: true, // VIP Especial -> Crachá Especial Azul
     status: 'CONFIRMED',
     isFlexge: true,
     isPresent: false,
@@ -89,7 +93,7 @@ export const INITIAL_ATTENDEES: Attendee[] = [
     isMentee: true,
     nearRenewal: true,
     photoUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&auto=format&fit=crop&q=80',
-    expertNote: 'Ingresso VIP / Mentorada ativa há 1 ano (Contrato vence mês que vem!). Abordar no Pitch com oferta de renovação.',
+    expertNote: 'Ingresso VIP / Especial. Mentorada ativa há 1 ano. Abordar no Pitch com oferta de renovação.',
     closerNotes: []
   },
   {
@@ -98,7 +102,7 @@ export const INITIAL_ATTENDEES: Attendee[] = [
     email: 'marcelo.prado@polyglot.com.br',
     phone: '(41) 98844-5566',
     instagram: '@marceloprado.esl',
-    level: 'SILVER', // SILVER = Crachá SILVER Prata
+    level: 'SILVER', // SILVER -> Crachá SILVER Prata
     status: 'CONFIRMED',
     isMeteoric: true,
     isPresent: true,
@@ -106,7 +110,7 @@ export const INITIAL_ATTENDEES: Attendee[] = [
     isMentee: false,
     nearRenewal: false,
     photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80',
-    expertNote: 'Ingresso SILVER (Comprou no Meteórico). Professor autônomo querendo lotar agenda. Apresentar case da Mentoria Rise de Entrada.',
+    expertNote: 'Ingresso SILVER (Comprou no Meteórico). Professor autônomo. Apresentar case da Mentoria Rise de Entrada.',
     closerNotes: []
   },
   {
@@ -115,7 +119,7 @@ export const INITIAL_ATTENDEES: Attendee[] = [
     email: 'camila@teflacademy.com.br',
     phone: '(81) 99554-2211',
     instagram: '@camila.tefl',
-    level: 'SILVER',
+    level: 'SILVER', // SILVER -> Crachá SILVER Prata
     status: 'CONFIRMED',
     isPresent: false,
     checkInTime: null,

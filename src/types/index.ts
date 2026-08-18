@@ -15,8 +15,9 @@ export interface Attendee {
   email: string;
   phone: string;
   instagram: string;
-  level: TicketLevel;
-  isSponsor?: boolean;
+  level: TicketLevel;      // 'VIP' ou 'SILVER'
+  isSpecial?: boolean;     // Marcação 'É ESPECIAL?' (para Ingressos VIP)
+  isSponsor?: boolean;     // Marcação 'Patrocinador?'
   status: ConfirmationStatus;
   isFlexge?: boolean;
   isMeteoric?: boolean;
@@ -30,16 +31,25 @@ export interface Attendee {
 }
 
 /**
- * Calcula o crachá físico entregue na recepção e exibido no QR Code:
- * - ESPECIAL (Azul Safira): Se for Patrocinador OU (Ingresso VIP + Mentorado)
- * - VIP (Dourado): Ingresso VIP que AINDA NÃO é mentorado
- * - SILVER (Prata): Ingresso SILVER
+ * Lógica oficial do evento para o Crachá entregue na recepção e no QR Code:
+ * 1. Patrocinador? SIM -> Crachá Especial Azul
+ * 2. Ingresso == SILVER -> Crachá SILVER
+ * 3. Ingresso == VIP:
+ *    - É ESPECIAL? SIM -> Crachá Especial Azul
+ *    - É ESPECIAL? NÃO -> Crachá VIP (Amarelo/Dourado)
  */
 export function getBadgeLevel(attendee: Attendee): BadgeLevel {
-  if (attendee.isSponsor || (attendee.level === 'VIP' && attendee.isMentee)) {
+  if (attendee.isSponsor) {
     return 'ESPECIAL';
   }
-  return attendee.level;
+  if (attendee.level === 'SILVER') {
+    return 'SILVER';
+  }
+  // Ingresso VIP
+  if (attendee.isSpecial) {
+    return 'ESPECIAL';
+  }
+  return 'VIP';
 }
 
 export type UserRole = 'CLOSER' | 'RECEPCAO' | null;
