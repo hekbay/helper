@@ -5,6 +5,7 @@ import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 interface AppContextType {
   attendees: Attendee[];
+  closerNames: string[];
   userSession: UserSession;
   isSupabaseActive: boolean;
   login: (role: UserRole, userName?: string) => void;
@@ -14,10 +15,17 @@ interface AppContextType {
   addCloserNote: (attendeeId: string, text: string, closerName: string) => void;
   importAttendees: (newAttendees: Attendee[]) => void;
   resetToDefault: () => void;
+  addAttendee: (attendee: Attendee) => void;
+  deleteAttendee: (id: string) => void;
+  addCloserName: (name: string) => void;
+  removeCloserName: (name: string) => void;
 }
 
 const STORAGE_KEY_ATTENDEES = 'helper_rise_attendees_v2';
 const STORAGE_KEY_SESSION = 'helper_rise_session_v2';
+const STORAGE_KEY_CLOSERS = 'helper_rise_closers_v1';
+
+export const DEFAULT_CLOSER_NAMES = ['Carla', 'Davi', 'Emmy', 'Ricardo', 'Everton'];
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
@@ -46,6 +54,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return { role: null };
   });
 
+  const [closerNames, setCloserNames] = useState<string[]>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY_CLOSERS);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (err) {
+      console.error('Failed to parse closer names:', err);
+    }
+    return DEFAULT_CLOSER_NAMES;
+  });
+
   // Supabase Initial Fetch & Sync
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) return;
@@ -70,7 +90,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const formatted: Attendee[] = dbAttendees.map(item => ({
             id: item.id,
             name: item.name,
-            email: item.email || '',
             phone: item.phone || '',
             instagram: item.instagram || '',
             level: item.level as any,
@@ -84,7 +103,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             isMentee: item.is_mentee,
             nearRenewal: item.near_renewal,
             photoUrl: item.photo_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
-            expertNote: item.expert_note || '',
+            isAccompanied: item.is_accompanied ?? false,
+            accompaniedBy: item.accompanied_by || undefined,
+            companionName: item.companion_name || '',
+            currentMentorship: item.current_mentorship || '',
+            cycle: item.cycle || '',
+            cycleEndDate: item.cycle_end_date || '',
+            isPaying: item.is_paying ?? false,
+            paymentMethod: item.payment_method || undefined,
+            installmentValue: item.installment_value || '',
+            remainingInstallments: item.remaining_installments ?? undefined,
+            offerToMake: item.offer_to_make || '',
+            specialCondition: item.special_condition || '',
             closerNotes: (dbNotes || [])
               .filter(n => n.attendee_id === item.id)
               .map(n => ({
@@ -105,6 +135,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     fetchFromSupabase();
   }, []);
 
+  useEffect(() => {
+    if (!isSupabaseConfigured || !supabase) return;
+    const client = supabase;
+
+    const fetchClosersFromSupabase = async () => {
+      try {
+        const { data, error } = await client.from('closers').select('name').order('name');
+        if (error) {
+          console.warn('Supabase closers fetch error, using local fallback:', error);
+          return;
+        }
+        if (data && data.length > 0) {
+          setCloserNames(data.map(row => row.name));
+        }
+      } catch (err) {
+        console.error('Failed to sync closers with Supabase:', err);
+      }
+    };
+
+    fetchClosersFromSupabase();
+  }, []);
+
   // Save to LocalStorage
   useEffect(() => {
     try {
@@ -121,6 +173,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       console.error('Failed to save session:', err);
     }
   }, [userSession]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_CLOSERS, JSON.stringify(closerNames));
+    } catch (err) {
+      console.error('Failed to save closer names:', err);
+    }
+  }, [closerNames]);
 
   const login = (role: UserRole, userName?: string) => {
     const session: UserSession = {
@@ -140,9 +200,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!target) return;
 
     const newIsPresent = !target.isPresent;
-    const newCheckInTime = newIsPresent
-      ? new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-      : null;
+    const newCheckInTime = newIsPresent ? new Date().toISOString() : null;
 
     // Optimistic local update
     setAttendees(prev =>
@@ -171,13 +229,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           .from('attendees')
           .update({
             name: updated.name,
-            email: updated.email,
             phone: updated.phone,
             instagram: updated.instagram,
             level: updated.level,
             is_mentee: updated.isMentee,
             near_renewal: updated.nearRenewal,
-            expert_note: updated.expertNote
+            is_accompanied: updated.isAccompanied,
+            accompanied_by: updated.accompaniedBy,
+            companion_name: updated.companionName,
+            current_mentorship: updated.currentMentorship,
+            cycle: updated.cycle,
+            cycle_end_date: updated.cycleEndDate,
+            is_paying: updated.isPaying,
+            payment_method: updated.paymentMethod,
+            installment_value: updated.installmentValue,
+            remaining_installments: updated.remainingInstallments,
+            offer_to_make: updated.offerToMake,
+            special_condition: updated.specialCondition
           })
           .eq('id', updated.id);
       } catch (err) {
@@ -228,10 +296,90 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.removeItem(STORAGE_KEY_ATTENDEES);
   };
 
+  const addAttendee = async (attendee: Attendee) => {
+    setAttendees(prev => [attendee, ...prev]);
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('attendees').insert({
+          id: attendee.id,
+          name: attendee.name,
+          phone: attendee.phone,
+          instagram: attendee.instagram,
+          level: attendee.level,
+          is_special: attendee.isSpecial ?? false,
+          is_sponsor: attendee.isSponsor ?? false,
+          status: attendee.status,
+          is_flexge: attendee.isFlexge ?? false,
+          is_meteoric: attendee.isMeteoric ?? false,
+          is_present: attendee.isPresent,
+          check_in_time: attendee.checkInTime,
+          is_mentee: attendee.isMentee,
+          near_renewal: attendee.nearRenewal,
+          photo_url: attendee.photoUrl,
+          is_accompanied: attendee.isAccompanied,
+          accompanied_by: attendee.accompaniedBy,
+          companion_name: attendee.companionName,
+          current_mentorship: attendee.currentMentorship,
+          cycle: attendee.cycle,
+          cycle_end_date: attendee.cycleEndDate,
+          is_paying: attendee.isPaying,
+          payment_method: attendee.paymentMethod,
+          installment_value: attendee.installmentValue,
+          remaining_installments: attendee.remainingInstallments,
+          offer_to_make: attendee.offerToMake,
+          special_condition: attendee.specialCondition
+        });
+      } catch (err) {
+        console.error('Failed to insert attendee into Supabase:', err);
+      }
+    }
+  };
+
+  const deleteAttendee = async (id: string) => {
+    setAttendees(prev => prev.filter(item => item.id !== id));
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('attendees').delete().eq('id', id);
+      } catch (err) {
+        console.error('Failed to delete attendee from Supabase:', err);
+      }
+    }
+  };
+
+  const addCloserName = async (name: string) => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+
+    setCloserNames(prev => (prev.includes(trimmed) ? prev : [...prev, trimmed]));
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('closers').insert({ name: trimmed });
+      } catch (err) {
+        console.error('Failed to insert closer into Supabase:', err);
+      }
+    }
+  };
+
+  const removeCloserName = async (name: string) => {
+    setCloserNames(prev => prev.filter(item => item !== name));
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('closers').delete().eq('name', name);
+      } catch (err) {
+        console.error('Failed to delete closer from Supabase:', err);
+      }
+    }
+  };
+
   return (
     <AppContext.Provider
       value={{
         attendees,
+        closerNames,
         userSession,
         isSupabaseActive: isSupabaseConfigured,
         login,
@@ -240,7 +388,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateAttendee,
         addCloserNote,
         importAttendees,
-        resetToDefault
+        resetToDefault,
+        addAttendee,
+        deleteAttendee,
+        addCloserName,
+        removeCloserName
       }}
     >
       {children}

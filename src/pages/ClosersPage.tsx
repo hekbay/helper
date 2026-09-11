@@ -12,12 +12,17 @@ import {
   Send,
   Sparkles,
   Phone,
-  Mail,
   ExternalLink,
-  BookOpen
+  BookOpen,
+  Award,
+  Users,
+  GraduationCap,
+  CreditCard,
+  Gift
 } from 'lucide-react';
-import type { Attendee, BadgeLevel } from '../types/index';
+import type { BadgeLevel } from '../types/index';
 import { getBadgeLevel } from '../types/index';
+import { formatCheckInTime } from '../lib/format';
 
 const InstagramIcon: React.FC<{ className?: string }> = ({ className = "w-4 h-4" }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -46,10 +51,10 @@ export const ClosersPage: React.FC = () => {
       const matchesSearch =
         !q ||
         item.name.toLowerCase().includes(q) ||
-        item.email.toLowerCase().includes(q) ||
         item.phone.includes(q) ||
         item.instagram.toLowerCase().includes(q) ||
-        item.expertNote.toLowerCase().includes(q);
+        item.currentMentorship.toLowerCase().includes(q) ||
+        item.offerToMake.toLowerCase().includes(q);
 
       const calculatedBadge = getBadgeLevel(item);
       const matchesBadge = badgeFilter === 'ALL' || calculatedBadge === badgeFilter;
@@ -124,7 +129,7 @@ export const ClosersPage: React.FC = () => {
 
         {/* Horizontally Scrollable Badge Filter Tabs */}
         <div className="flex items-center space-x-1.5 overflow-x-auto no-scrollbar py-0.5">
-          {(['ALL', 'VIP', 'SILVER', 'ESPECIAL'] as const).map(lvl => (
+          {(['ALL', 'VIP', 'SILVER', 'PATROCINADOR'] as const).map(lvl => (
             <button
               key={lvl}
               onClick={() => setBadgeFilter(lvl)}
@@ -134,11 +139,7 @@ export const ClosersPage: React.FC = () => {
                   : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
               }`}
             >
-              {lvl === 'ALL'
-                ? 'Todos Crachás'
-                : lvl === 'ESPECIAL'
-                ? 'ESPECIAL (VIP Mentorado)'
-                : `Crachá ${lvl}`}
+              {lvl === 'ALL' ? 'Todos Crachás' : `Crachá ${lvl}`}
             </button>
           ))}
         </div>
@@ -273,7 +274,7 @@ export const ClosersPage: React.FC = () => {
                         <div className="flex items-center space-x-2 text-xs">
                           {item.isPresent ? (
                             <span className="text-[10px] font-bold text-emerald-700">
-                              Presente {item.checkInTime && `(${item.checkInTime})`}
+                              Presente {item.checkInTime && `(${formatCheckInTime(item.checkInTime)})`}
                             </span>
                           ) : (
                             <span className="text-[10px] font-medium text-slate-400">Ausente</span>
@@ -298,9 +299,9 @@ export const ClosersPage: React.FC = () => {
 
                   {/* Context Badges (Mentee vs VIP Non-Mentee Pitch Target) */}
                   <div className="flex flex-wrap items-center gap-1.5 text-xs pt-0.5">
-                    {item.level === 'VIP' && !item.isSpecial && !item.isSponsor && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300 flex items-center space-x-1">
-                        <Sparkles className="w-3 h-3 text-amber-700" />
+                    {item.level === 'VIP' && !item.isSponsor && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-red-50 text-red-900 border border-red-300 flex items-center space-x-1">
+                        <Sparkles className="w-3 h-3 text-red-700" />
                         <span>🔥 Crachá VIP (Alvo no Pitch)</span>
                       </span>
                     )}
@@ -308,13 +309,13 @@ export const ClosersPage: React.FC = () => {
                     {item.level === 'VIP' && item.isSpecial && (
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-200 flex items-center space-x-1">
                         <Award className="w-3 h-3 text-blue-600" />
-                        <span>⭐ VIP Especial (Crachá Azul)</span>
+                        <span>⭐ Perfil Especial</span>
                       </span>
                     )}
 
                     {item.isSponsor && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-800 border border-indigo-200">
-                        🤝 Patrocinador (Crachá Azul)
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-teal-50 text-teal-800 border border-teal-300">
+                        🤝 Patrocinador (Crachá Verde Água)
                       </span>
                     )}
 
@@ -324,16 +325,37 @@ export const ClosersPage: React.FC = () => {
                         <span>Renovação Próxima</span>
                       </span>
                     )}
+
+                    {item.isAccompanied && (
+                      <span
+                        className="text-[10px] font-bold px-2 py-0.5 rounded bg-pink-50 text-pink-700 border border-pink-200"
+                        title={item.companionName ? `Acompanhante: ${item.companionName}` : undefined}
+                      >
+                        Acompanhado{item.accompaniedBy ? ` (${item.accompaniedBy})` : ''}
+                      </span>
+                    )}
                   </div>
 
-                  {/* Expert Note Teaser */}
-                  <div className="p-3 rounded-xl bg-amber-50/70 border border-amber-200/80 text-xs text-slate-800 flex items-start space-x-2">
-                    <Sparkles className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                    <div>
-                      <strong className="text-slate-900 font-bold mr-1">Intel da Ana:</strong>
-                      <span>{item.expertNote}</span>
+                  {/* Offer Teaser */}
+                  {(item.offerToMake || item.currentMentorship) && (
+                    <div className="p-3 rounded-xl bg-amber-50/70 border border-amber-200/80 text-xs text-slate-800 flex items-start space-x-2">
+                      <Gift className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                      <div className="space-y-0.5">
+                        {item.currentMentorship && (
+                          <div>
+                            <strong className="text-slate-900 font-bold mr-1">Mentoria atual:</strong>
+                            <span>{item.currentMentorship} ({item.cycle})</span>
+                          </div>
+                        )}
+                        {item.offerToMake && (
+                          <div>
+                            <strong className="text-slate-900 font-bold mr-1">Oferta a fazer:</strong>
+                            <span>{item.offerToMake}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Expand Drawer Button */}
                   <button
@@ -352,7 +374,7 @@ export const ClosersPage: React.FC = () => {
                 {/* Cascata Expanded Detail Drawer */}
                 {isExpanded && (
                   <div className="border-t border-slate-200 bg-slate-50 p-4 sm:p-5 space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
                       <div className="p-3 rounded-xl bg-white border border-slate-200">
                         <div className="text-slate-400 font-medium flex items-center space-x-1 mb-0.5">
                           <Phone className="w-3.5 h-3.5 text-slate-400" />
@@ -376,15 +398,78 @@ export const ClosersPage: React.FC = () => {
                           <ExternalLink className="w-3 h-3" />
                         </a>
                       </div>
-
-                      <div className="p-3 rounded-xl bg-white border border-slate-200">
-                        <div className="text-slate-400 font-medium flex items-center space-x-1 mb-0.5">
-                          <Mail className="w-3.5 h-3.5 text-slate-400" />
-                          <span>E-mail</span>
-                        </div>
-                        <div className="text-slate-900 font-bold truncate">{item.email}</div>
-                      </div>
                     </div>
+
+                    {/* Acompanhante */}
+                    <div className="p-3 rounded-xl bg-white border border-slate-200 text-xs space-y-1">
+                      <div className="text-slate-400 font-medium flex items-center space-x-1 mb-0.5">
+                        <Users className="w-3.5 h-3.5 text-slate-400" />
+                        <span>Acompanhante</span>
+                      </div>
+                      {item.isAccompanied ? (
+                        <div className="text-slate-900 font-bold">
+                          {item.companionName || 'Nome não informado'}{' '}
+                          {item.accompaniedBy && (
+                            <span className="text-slate-500 font-medium">({item.accompaniedBy})</span>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-slate-500 font-medium">Não está acompanhado</div>
+                      )}
+                    </div>
+
+                    {/* Mentoria & Pagamento */}
+                    {(item.currentMentorship || item.isPaying) && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                        <div className="p-3 rounded-xl bg-white border border-slate-200 space-y-1">
+                          <div className="text-slate-400 font-medium flex items-center space-x-1 mb-0.5">
+                            <GraduationCap className="w-3.5 h-3.5 text-slate-400" />
+                            <span>Mentoria Atual</span>
+                          </div>
+                          <div className="text-slate-900 font-bold">{item.currentMentorship || '—'}</div>
+                          {item.cycle && <div className="text-slate-600">{item.cycle}</div>}
+                          {item.cycleEndDate && (
+                            <div className="text-slate-500">Finaliza em: {item.cycleEndDate}</div>
+                          )}
+                        </div>
+
+                        <div className="p-3 rounded-xl bg-white border border-slate-200 space-y-1">
+                          <div className="text-slate-400 font-medium flex items-center space-x-1 mb-0.5">
+                            <CreditCard className="w-3.5 h-3.5 text-slate-400" />
+                            <span>Pagamento</span>
+                          </div>
+                          <div className="text-slate-900 font-bold">
+                            {item.isPaying ? 'Ainda pagando' : 'Quitado / Não se aplica'}
+                          </div>
+                          {item.isPaying && (
+                            <>
+                              {item.paymentMethod && <div className="text-slate-600">{item.paymentMethod}</div>}
+                              {item.installmentValue && (
+                                <div className="text-slate-600">
+                                  {item.installmentValue}
+                                  {item.remainingInstallments != null &&
+                                    ` • ${item.remainingInstallments} parcela(s) restante(s)`}
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Oferta */}
+                    {(item.offerToMake || item.specialCondition) && (
+                      <div className="p-3 rounded-xl bg-white border border-slate-200 text-xs space-y-1">
+                        <div className="text-slate-400 font-medium flex items-center space-x-1 mb-0.5">
+                          <Gift className="w-3.5 h-3.5 text-slate-400" />
+                          <span>Oferta a ser feita</span>
+                        </div>
+                        <div className="text-slate-900 font-bold">{item.offerToMake || '—'}</div>
+                        {item.specialCondition && (
+                          <div className="text-slate-600">Condição especial: {item.specialCondition}</div>
+                        )}
+                      </div>
+                    )}
 
                     {/* Closer Notes Section */}
                     <div className="space-y-2.5">

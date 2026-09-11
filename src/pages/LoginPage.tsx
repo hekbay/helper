@@ -1,36 +1,61 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
-import { Shield, Users, KeyRound, ArrowRight, CheckCircle } from 'lucide-react';
+import { ShieldCheck, Users, KeyRound, ArrowRight, CheckCircle, ChevronDown, UserCircle2 } from 'lucide-react';
 import type { UserRole } from '../types/index';
 
 export const LoginPage: React.FC = () => {
-  const { login } = useApp();
+  const { login, closerNames } = useApp();
   const navigate = useNavigate();
 
   const [selectedRole, setSelectedRole] = useState<UserRole>('CLOSER');
   const [pin, setPin] = useState('');
+  const [closerName, setCloserName] = useState('');
   const [userName, setUserName] = useState('');
   const [error, setError] = useState('');
+  const [isNameDropdownOpen, setIsNameDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsNameDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const CLOSER_PIN = import.meta.env.VITE_CLOSER_PIN;
+  const ADMIN_PIN = import.meta.env.VITE_ADMIN_PIN;
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
+    if (!pin) {
+      setError('Digite o PIN de acesso.');
+      return;
+    }
+
     if (selectedRole === 'CLOSER') {
-      if (pin && pin !== '102030' && pin !== '1234') {
+      if (!closerName) {
+        setError('Selecione quem é você.');
+        return;
+      }
+      if (pin !== CLOSER_PIN) {
         setError('PIN incorreto para o perfil de Closers! Tente novamente.');
         return;
       }
-      login('CLOSER', userName || 'Closer Rise');
+      login('CLOSER', closerName);
       navigate('/closers');
-    } else if (selectedRole === 'RECEPCAO') {
-      if (pin && pin !== '5555' && pin !== '555') {
-        setError('PIN incorreto para o perfil da Recepção! Tente novamente.');
+    } else if (selectedRole === 'ADMIN') {
+      if (pin !== ADMIN_PIN) {
+        setError('PIN incorreto para o perfil Admin! Tente novamente.');
         return;
       }
-      login('RECEPCAO', userName || 'Equipe Recepção');
-      navigate('/recepcao');
+      login('ADMIN', userName || 'admin');
+      navigate('/admin');
     }
   };
 
@@ -87,40 +112,80 @@ export const LoginPage: React.FC = () => {
 
                 <button
                   type="button"
-                  onClick={() => setSelectedRole('RECEPCAO')}
+                  onClick={() => setSelectedRole('ADMIN')}
                   className={`p-3 rounded-xl border text-left flex flex-col justify-between transition min-h-[72px] ${
-                    selectedRole === 'RECEPCAO'
+                    selectedRole === 'ADMIN'
                       ? 'bg-slate-900 border-slate-900 text-white shadow-sm'
                       : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <Shield className={`w-4 h-4 ${selectedRole === 'RECEPCAO' ? 'text-white' : 'text-slate-500'}`} />
-                    {selectedRole === 'RECEPCAO' && <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />}
+                    <ShieldCheck className={`w-4 h-4 ${selectedRole === 'ADMIN' ? 'text-white' : 'text-slate-500'}`} />
+                    {selectedRole === 'ADMIN' && <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />}
                   </div>
                   <div>
-                    <div className="text-xs font-bold">RECEPÇÃO</div>
-                    <div className={`text-[10px] ${selectedRole === 'RECEPCAO' ? 'text-slate-300' : 'text-slate-500'}`}>
-                      Credenciamento
+                    <div className="text-xs font-bold">ADMIN</div>
+                    <div className={`text-[10px] ${selectedRole === 'ADMIN' ? 'text-slate-300' : 'text-slate-500'}`}>
+                      Administração
                     </div>
                   </div>
                 </button>
               </div>
             </div>
 
-            {/* Name Input */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                {selectedRole === 'CLOSER' ? 'Seu Nome (para anotações)' : 'Nome do Atendente'}
-              </label>
-              <input
-                type="text"
-                placeholder={selectedRole === 'CLOSER' ? 'Ex: Closer Lucas' : 'Ex: Atendente Ana'}
-                value={userName}
-                onChange={e => setUserName(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-900 focus:bg-white transition"
-              />
-            </div>
+            {/* Name Selection */}
+            {selectedRole === 'CLOSER' ? (
+              <div ref={dropdownRef} className="relative">
+                <label className="block text-xs font-bold text-slate-700 mb-1">Quem é você?</label>
+                <button
+                  type="button"
+                  onClick={() => setIsNameDropdownOpen(prev => !prev)}
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-4 py-3 text-sm text-left focus:outline-none focus:border-slate-900 focus:bg-white transition flex items-center justify-between"
+                >
+                  <span className={closerName ? 'text-slate-900 font-semibold' : 'text-slate-400'}>
+                    {closerName || 'Selecione seu nome'}
+                  </span>
+                  <ChevronDown
+                    className={`w-4 h-4 text-slate-400 transition-transform ${isNameDropdownOpen ? 'rotate-180' : ''}`}
+                  />
+                </button>
+                <UserCircle2 className="w-4 h-4 text-slate-400 absolute left-3.5 top-[38px] pointer-events-none" />
+
+                {isNameDropdownOpen && (
+                  <div className="absolute z-10 mt-1.5 w-full bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden">
+                    {closerNames.map(name => (
+                      <button
+                        key={name}
+                        type="button"
+                        onClick={() => {
+                          setCloserName(name);
+                          setIsNameDropdownOpen(false);
+                        }}
+                        className={`w-full text-left px-4 py-2.5 text-sm font-medium transition flex items-center justify-between ${
+                          closerName === name
+                            ? 'bg-slate-900 text-white'
+                            : 'text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        <span>{name}</span>
+                        {closerName === name && <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Nome do Administrador</label>
+                <input
+                  type="text"
+                  placeholder="Ex: admin"
+                  value={userName}
+                  onChange={e => setUserName(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-900 focus:bg-white transition"
+                />
+              </div>
+            )}
 
             {/* PIN Security Code */}
             <div>
@@ -152,7 +217,7 @@ export const LoginPage: React.FC = () => {
               type="submit"
               className="w-full py-3.5 px-4 rounded-xl font-bold text-sm bg-slate-900 hover:bg-slate-800 text-white flex items-center justify-center space-x-2 transition shadow-sm"
             >
-              <span>Acessar {selectedRole === 'CLOSER' ? 'Painel dos Closers' : 'Painel da Recepção'}</span>
+              <span>Acessar {selectedRole === 'CLOSER' ? 'Painel dos Closers' : 'Painel Admin'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>

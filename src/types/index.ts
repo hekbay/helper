@@ -1,6 +1,8 @@
 export type TicketLevel = 'VIP' | 'SILVER';
-export type BadgeLevel = 'VIP' | 'SILVER' | 'ESPECIAL';
+export type BadgeLevel = 'VIP' | 'SILVER' | 'PATROCINADOR';
 export type ConfirmationStatus = 'CONFIRMED' | 'AWAITING';
+export type AccompaniedBy = 'Esposo(a)' | 'Professor parceiro' | 'Colaborador' | 'Amigo';
+export type PaymentMethod = 'Boleto' | 'Cartão de Crédito';
 
 export interface CloserNote {
   id: string;
@@ -12,7 +14,6 @@ export interface CloserNote {
 export interface Attendee {
   id: string;
   name: string;
-  email: string;
   phone: string;
   instagram: string;
   level: TicketLevel;      // 'VIP' ou 'SILVER'
@@ -26,33 +27,44 @@ export interface Attendee {
   isMentee: boolean;
   nearRenewal: boolean;
   photoUrl: string;
-  expertNote: string;
   closerNotes: CloserNote[];
+
+  // Acompanhante
+  isAccompanied: boolean;
+  accompaniedBy?: AccompaniedBy;
+  companionName?: string;
+
+  // Situação de mentoria
+  currentMentorship: string;
+  cycle: string;
+  cycleEndDate: string;
+  isPaying: boolean;
+  paymentMethod?: PaymentMethod;
+  installmentValue?: string;
+  remainingInstallments?: number;
+
+  // Oferta
+  offerToMake: string;
+  specialCondition?: string;
 }
 
 /**
  * Lógica oficial do evento para o Crachá entregue na recepção e no QR Code:
- * 1. Patrocinador? SIM -> Crachá Especial Azul
- * 2. Ingresso == SILVER -> Crachá SILVER
- * 3. Ingresso == VIP:
- *    - É ESPECIAL? SIM -> Crachá Especial Azul
- *    - É ESPECIAL? NÃO -> Crachá VIP (Amarelo/Dourado)
+ * 1. Patrocinador? SIM -> Crachá PATROCINADOR (verde água)
+ * 2. Ingresso == SILVER -> Crachá SILVER (prateado)
+ * 3. Ingresso == VIP -> Crachá VIP (vermelho brasa), independente de 'É ESPECIAL?'
  */
 export function getBadgeLevel(attendee: Attendee): BadgeLevel {
   if (attendee.isSponsor) {
-    return 'ESPECIAL';
+    return 'PATROCINADOR';
   }
   if (attendee.level === 'SILVER') {
     return 'SILVER';
   }
-  // Ingresso VIP
-  if (attendee.isSpecial) {
-    return 'ESPECIAL';
-  }
   return 'VIP';
 }
 
-export type UserRole = 'CLOSER' | 'RECEPCAO' | null;
+export type UserRole = 'CLOSER' | 'RECEPCAO' | 'ADMIN' | null;
 
 export interface UserSession {
   role: UserRole;
@@ -61,7 +73,7 @@ export interface UserSession {
 }
 
 export const BADGE_COLORS = {
-  VIP: '#F59E0B',
-  SILVER: '#94A3B8',
-  ESPECIAL: '#2563EB'
+  VIP: '#991B1B', // vermelho brasa
+  SILVER: '#94A3B8', // prateado
+  PATROCINADOR: '#0D9488' // verde água / teal
 } as const;

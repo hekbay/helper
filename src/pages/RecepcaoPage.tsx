@@ -4,6 +4,7 @@ import { BadgePill } from '../components/BadgePill';
 import { Search, CheckCircle2, UserCheck } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { getBadgeLevel } from '../types/index';
+import { formatCheckInTime } from '../lib/format';
 
 export const RecepcaoPage: React.FC = () => {
   const { attendees, toggleCheckIn } = useApp();
@@ -45,7 +46,7 @@ export const RecepcaoPage: React.FC = () => {
             Recepção & Credenciamento
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Entrega de Crachás: VIP (Dourado), SILVER (Prata) e ESPECIAL (Mentorado VIP / Patrocinador)
+            Entrega de Crachás: VIP (Vermelho Brasa), SILVER (Prateado) e PATROCINADOR (Verde Água)
           </p>
         </div>
 
@@ -126,21 +127,19 @@ export const RecepcaoPage: React.FC = () => {
                   <div className="flex flex-wrap items-center gap-1.5 text-xs">
                     <span
                       className={`font-bold text-[10px] px-2 py-0.5 rounded border uppercase ${
-                        badgeToDeliver === 'ESPECIAL'
-                          ? 'bg-blue-50 text-blue-800 border-blue-200'
+                        badgeToDeliver === 'PATROCINADOR'
+                          ? 'bg-teal-50 text-teal-800 border-teal-300'
                           : badgeToDeliver === 'VIP'
-                          ? 'bg-amber-50 text-amber-800 border-amber-200'
-                          : 'bg-slate-100 text-slate-700 border-slate-200'
+                          ? 'bg-red-50 text-red-800 border-red-300'
+                          : 'bg-slate-100 text-slate-700 border-slate-300'
                       }`}
                     >
-                      Entregar Crachá: {badgeToDeliver}{' '}
-                      {badgeToDeliver === 'ESPECIAL' &&
-                        (item.isSponsor ? '(Patrocinador)' : '(VIP Especial)')}
+                      Entregar Crachá: {badgeToDeliver}
                     </span>
 
                     {item.isPresent && (
                       <span className="text-emerald-700 font-bold text-[10px]">
-                        • Presença às {item.checkInTime || 'Agora'}
+                        • Presença às {formatCheckInTime(item.checkInTime) || 'Agora'}
                       </span>
                     )}
                   </div>

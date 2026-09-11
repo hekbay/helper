@@ -1,7 +1,7 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LogOut, Users, Shield, QrCode, CheckCircle2 } from 'lucide-react';
+import { LogOut, Users, Shield, ShieldCheck, QrCode, CheckCircle2 } from 'lucide-react';
 import { getBadgeLevel } from '../types/index';
 
 export const Navbar: React.FC = () => {
@@ -16,8 +16,8 @@ export const Navbar: React.FC = () => {
   const presentCount = attendees.filter(a => a.isPresent).length;
   const vipBadgePresent = attendees.filter(a => getBadgeLevel(a) === 'VIP' && a.isPresent).length;
   const vipBadgeTotal = attendees.filter(a => getBadgeLevel(a) === 'VIP').length;
-  const espBadgePresent = attendees.filter(a => getBadgeLevel(a) === 'ESPECIAL' && a.isPresent).length;
-  const espBadgeTotal = attendees.filter(a => getBadgeLevel(a) === 'ESPECIAL').length;
+  const sponsorBadgePresent = attendees.filter(a => getBadgeLevel(a) === 'PATROCINADOR' && a.isPresent).length;
+  const sponsorBadgeTotal = attendees.filter(a => getBadgeLevel(a) === 'PATROCINADOR').length;
 
   return (
     <>
@@ -53,7 +53,7 @@ export const Navbar: React.FC = () => {
             <div className="hidden lg:flex items-center space-x-2 text-[11px] text-slate-600 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200">
               <span>VIPs: <strong className="text-amber-800">{vipBadgePresent}/{vipBadgeTotal}</strong></span>
               <span className="text-slate-300">•</span>
-              <span>Especial: <strong className="text-blue-800">{espBadgePresent}/{espBadgeTotal}</strong></span>
+              <span>Patrocinador: <strong className="text-teal-800">{sponsorBadgePresent}/{sponsorBadgeTotal}</strong></span>
             </div>
 
             {userSession.role && (
@@ -113,6 +113,23 @@ export const Navbar: React.FC = () => {
             <Shield className="w-4 h-4" />
             <span>Recepção</span>
           </button>
+
+          {userSession.role === 'ADMIN' && (
+            <>
+              <div className="w-3" />
+              <button
+                onClick={() => navigate('/admin')}
+                className={`flex-1 py-2 rounded-lg flex flex-col items-center justify-center space-y-0.5 text-xs font-bold transition ${
+                  location.pathname === '/admin'
+                    ? 'bg-slate-900 text-white shadow-sm'
+                    : 'text-slate-500 hover:text-slate-900'
+                }`}
+              >
+                <ShieldCheck className="w-4 h-4" />
+                <span>Admin</span>
+              </button>
+            </>
+          )}
         </nav>
       )}
     </>

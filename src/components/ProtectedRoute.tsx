@@ -17,7 +17,12 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowe
 
   // If specific role required and user doesn't have it, redirect to their role's page
   if (allowedRole && userSession.role !== allowedRole) {
-    return <Navigate to={userSession.role === 'CLOSER' ? '/closers' : '/recepcao'} replace />;
+    const homeByRole: Record<Exclude<UserRole, null>, string> = {
+      CLOSER: '/closers',
+      RECEPCAO: '/recepcao',
+      ADMIN: '/admin'
+    };
+    return <Navigate to={homeByRole[userSession.role as Exclude<UserRole, null>]} replace />;
   }
 
   return <>{children}</>;

@@ -1,0 +1,407 @@
+import React, { useState } from 'react';
+import { useApp } from '../context/AppContext';
+import type { AccompaniedBy, Attendee, PaymentMethod, TicketLevel } from '../types/index';
+import { ShieldCheck, UserPlus, Trash2, Users, Plus, X } from 'lucide-react';
+
+const DEFAULT_PHOTO = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400';
+
+const ACCOMPANIED_BY_OPTIONS: AccompaniedBy[] = ['Esposo(a)', 'Professor parceiro', 'Colaborador', 'Amigo'];
+const PAYMENT_METHOD_OPTIONS: PaymentMethod[] = ['Boleto', 'Cartão de Crédito'];
+const MENTORSHIP_OPTIONS = ['Mentoria Partiu 10K', 'Professores de Elite'];
+const CYCLE_OPTIONS = ['1º ciclo', '2º ciclo', '3º ciclo', '4º ciclo', '5º ciclo'];
+
+const emptyForm = {
+  name: '',
+  phone: '',
+  instagram: '',
+  level: 'VIP' as TicketLevel,
+  isSpecial: false,
+  isSponsor: false,
+  isAccompanied: false,
+  accompaniedBy: '' as AccompaniedBy | '',
+  companionName: '',
+  currentMentorship: '',
+  cycle: '',
+  cycleEndDate: '',
+  isPaying: false,
+  paymentMethod: '' as PaymentMethod | '',
+  installmentValue: '',
+  remainingInstallments: '',
+  offerToMake: '',
+  specialCondition: ''
+};
+
+export const AdminPage: React.FC = () => {
+  const { attendees, addAttendee, deleteAttendee, closerNames, addCloserName, removeCloserName } = useApp();
+
+  const [form, setForm] = useState(emptyForm);
+  const [newCloserName, setNewCloserName] = useState('');
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  const handleAddAttendee = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.name.trim()) return;
+
+    const newAttendee: Attendee = {
+      id: 'att-' + Date.now().toString(36),
+      name: form.name.trim(),
+      phone: form.phone.trim(),
+      instagram: form.instagram.trim(),
+      level: form.level,
+      isSpecial: form.isSpecial,
+      isSponsor: form.isSponsor,
+      status: 'CONFIRMED',
+      isFlexge: false,
+      isMeteoric: false,
+      isPresent: false,
+      checkInTime: null,
+      isMentee: false,
+      nearRenewal: false,
+      photoUrl: DEFAULT_PHOTO,
+      isAccompanied: form.isAccompanied,
+      accompaniedBy: form.accompaniedBy || undefined,
+      companionName: form.companionName.trim(),
+      currentMentorship: form.currentMentorship.trim(),
+      cycle: form.cycle.trim(),
+      cycleEndDate: form.cycleEndDate.trim(),
+      isPaying: form.isPaying,
+      paymentMethod: form.paymentMethod || undefined,
+      installmentValue: form.installmentValue.trim(),
+      remainingInstallments: form.remainingInstallments ? Number(form.remainingInstallments) : undefined,
+      offerToMake: form.offerToMake.trim(),
+      specialCondition: form.specialCondition.trim(),
+      closerNotes: []
+    };
+
+    addAttendee(newAttendee);
+    setForm(emptyForm);
+  };
+
+  const handleAddCloser = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCloserName.trim()) return;
+    addCloserName(newCloserName.trim());
+    setNewCloserName('');
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 pb-24">
+      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center shrink-0">
+          <ShieldCheck className="w-5 h-5" />
+        </div>
+        <div>
+          <h1 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">Painel Admin</h1>
+          <p className="text-xs text-slate-500 mt-0.5">Gerencie participantes e a equipe de closers.</p>
+        </div>
+      </div>
+
+      {/* Participantes */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="p-4 sm:p-5 border-b border-slate-200">
+          <h2 className="text-sm font-extrabold text-slate-900 flex items-center gap-1.5">
+            <UserPlus className="w-4 h-4 text-slate-500" />
+            <span>Adicionar Participante</span>
+          </h2>
+        </div>
+
+        <form onSubmit={handleAddAttendee} className="p-4 sm:p-5 space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <input
+              type="text"
+              placeholder="Nome completo *"
+              value={form.name}
+              onChange={e => setForm({ ...form, name: e.target.value })}
+              required
+              className="bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-900"
+            />
+            <input
+              type="text"
+              placeholder="Telefone"
+              value={form.phone}
+              onChange={e => setForm({ ...form, phone: e.target.value })}
+              className="bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-900"
+            />
+            <input
+              type="text"
+              placeholder="Instagram (@usuario)"
+              value={form.instagram}
+              onChange={e => setForm({ ...form, instagram: e.target.value })}
+              className="bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-900"
+            />
+            <select
+              value={form.level}
+              onChange={e => setForm({ ...form, level: e.target.value as TicketLevel })}
+              className="bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-slate-900"
+            >
+              <option value="VIP">Ingresso VIP</option>
+              <option value="SILVER">Ingresso SILVER</option>
+            </select>
+          </div>
+
+          <div className="flex flex-wrap gap-4 text-xs pt-1">
+            <label className="flex items-center gap-1.5 font-semibold text-slate-700">
+              <input
+                type="checkbox"
+                checked={form.isSpecial}
+                onChange={e => setForm({ ...form, isSpecial: e.target.checked })}
+              />
+              <span>É Especial? (perfil, não muda o crachá)</span>
+            </label>
+            <label className="flex items-center gap-1.5 font-semibold text-slate-700">
+              <input
+                type="checkbox"
+                checked={form.isSponsor}
+                onChange={e => setForm({ ...form, isSponsor: e.target.checked })}
+              />
+              <span>Patrocinador?</span>
+            </label>
+          </div>
+
+          {/* Acompanhante */}
+          <div className="pt-2 border-t border-slate-100 space-y-2.5">
+            <label className="flex items-center gap-1.5 font-semibold text-xs text-slate-700">
+              <input
+                type="checkbox"
+                checked={form.isAccompanied}
+                onChange={e => setForm({ ...form, isAccompanied: e.target.checked })}
+              />
+              <span>Está acompanhado?</span>
+            </label>
+
+            {form.isAccompanied && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <select
+                  value={form.accompaniedBy}
+                  onChange={e => setForm({ ...form, accompaniedBy: e.target.value as AccompaniedBy })}
+                  className="bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-slate-900"
+                >
+                  <option value="">Quem é o acompanhante?</option>
+                  {ACCOMPANIED_BY_OPTIONS.map(opt => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                </select>
+                <input
+                  type="text"
+                  placeholder="Nome do acompanhante"
+                  value={form.companionName}
+                  onChange={e => setForm({ ...form, companionName: e.target.value })}
+                  className="bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-900"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Situação de mentoria */}
+          <div className="pt-2 border-t border-slate-100 space-y-2.5">
+            <label className="block text-xs font-bold text-slate-700">Situação de Mentoria</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <select
+                value={form.currentMentorship}
+                onChange={e => setForm({ ...form, currentMentorship: e.target.value })}
+                className="bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-slate-900"
+              >
+                <option value="">Mentoria atual</option>
+                {MENTORSHIP_OPTIONS.map(opt => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+              <select
+                value={form.cycle}
+                onChange={e => setForm({ ...form, cycle: e.target.value })}
+                className="bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-slate-900"
+              >
+                <option value="">Ciclo</option>
+                {CYCLE_OPTIONS.map(opt => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+              <input
+                type="date"
+                value={form.cycleEndDate}
+                onChange={e => setForm({ ...form, cycleEndDate: e.target.value })}
+                className="bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-slate-900"
+              />
+
+              <label className="flex items-center gap-1.5 font-semibold text-xs text-slate-700 sm:col-span-2">
+                <input
+                  type="checkbox"
+                  checked={form.isPaying}
+                  onChange={e => setForm({ ...form, isPaying: e.target.checked })}
+                />
+                <span>Ainda está pagando?</span>
+              </label>
+
+              {form.isPaying && (
+                <>
+                  <select
+                    value={form.paymentMethod}
+                    onChange={e => setForm({ ...form, paymentMethod: e.target.value as PaymentMethod })}
+                    className="bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-slate-900"
+                  >
+                    <option value="">Forma de pagamento</option>
+                    {PAYMENT_METHOD_OPTIONS.map(opt => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                  <input
+                    type="text"
+                    placeholder="Valor da parcela (ex: R$ 897,00)"
+                    value={form.installmentValue}
+                    onChange={e => setForm({ ...form, installmentValue: e.target.value })}
+                    className="bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-900"
+                  />
+                  <input
+                    type="number"
+                    min={0}
+                    placeholder="Parcelas restantes"
+                    value={form.remainingInstallments}
+                    onChange={e => setForm({ ...form, remainingInstallments: e.target.value })}
+                    className="bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-900"
+                  />
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Oferta */}
+          <div className="pt-2 border-t border-slate-100 space-y-2.5">
+            <label className="block text-xs font-bold text-slate-700">Oferta</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <input
+                type="text"
+                placeholder="Oferta a ser feita (ex: Mastermind)"
+                value={form.offerToMake}
+                onChange={e => setForm({ ...form, offerToMake: e.target.value })}
+                className="bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-900"
+              />
+              <input
+                type="text"
+                placeholder="Condição especial"
+                value={form.specialCondition}
+                onChange={e => setForm({ ...form, specialCondition: e.target.value })}
+                className="bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-900"
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2.5 px-5 rounded-xl flex items-center justify-center gap-1.5 transition"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Adicionar Participante</span>
+          </button>
+        </form>
+
+        <div className="border-t border-slate-200 divide-y divide-slate-100 max-h-96 overflow-y-auto">
+          {attendees.length === 0 ? (
+            <p className="p-4 text-xs text-slate-500 italic">Nenhum participante cadastrado.</p>
+          ) : (
+            attendees.map(a => (
+              <div key={a.id} className="p-3.5 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <img src={a.photoUrl} alt={a.name} className="w-9 h-9 rounded-lg object-cover border border-slate-200 shrink-0" />
+                  <div className="min-w-0">
+                    <div className="text-sm font-bold text-slate-900 truncate flex items-center gap-1.5">
+                      <span className="truncate">{a.name}</span>
+                      {a.isAccompanied && (
+                        <span
+                          className="inline-flex items-center bg-rose-50 text-rose-700 border border-rose-200 rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase shrink-0"
+                          title={a.companionName ? `Acompanhante: ${a.companionName}` : 'Acompanhado(a)'}
+                        >
+                          Acompanhado
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[11px] text-slate-500">{a.level} • {a.phone || 'sem telefone'}</div>
+                  </div>
+                </div>
+
+                {confirmDeleteId === a.id ? (
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      onClick={() => {
+                        deleteAttendee(a.id);
+                        setConfirmDeleteId(null);
+                      }}
+                      className="px-2.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-bold"
+                    >
+                      Confirmar exclusão
+                    </button>
+                    <button
+                      onClick={() => setConfirmDeleteId(null)}
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setConfirmDeleteId(a.id)}
+                    className="p-2 rounded-lg text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition shrink-0"
+                    title="Excluir participante"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Equipe de Closers */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="p-4 sm:p-5 border-b border-slate-200">
+          <h2 className="text-sm font-extrabold text-slate-900 flex items-center gap-1.5">
+            <Users className="w-4 h-4 text-slate-500" />
+            <span>Equipe de Closers</span>
+          </h2>
+          <p className="text-[11px] text-slate-500 mt-0.5">
+            Nomes disponíveis para seleção no login dos closers.
+          </p>
+        </div>
+
+        <form onSubmit={handleAddCloser} className="p-4 sm:p-5 flex gap-2">
+          <input
+            type="text"
+            placeholder="Nome do novo closer"
+            value={newCloserName}
+            onChange={e => setNewCloserName(e.target.value)}
+            className="flex-1 bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-900"
+          />
+          <button
+            type="submit"
+            className="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2.5 px-4 rounded-xl flex items-center gap-1.5 transition shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Adicionar</span>
+          </button>
+        </form>
+
+        <div className="border-t border-slate-200 p-4 sm:p-5 flex flex-wrap gap-2">
+          {closerNames.length === 0 ? (
+            <p className="text-xs text-slate-500 italic">Nenhum closer cadastrado.</p>
+          ) : (
+            closerNames.map(name => (
+              <span
+                key={name}
+                className="inline-flex items-center gap-1.5 bg-slate-100 border border-slate-200 rounded-full pl-3 pr-1.5 py-1 text-xs font-bold text-slate-800"
+              >
+                <span>{name}</span>
+                <button
+                  onClick={() => removeCloserName(name)}
+                  className="p-0.5 rounded-full hover:bg-rose-100 text-slate-400 hover:text-rose-600 transition"
+                  title={`Remover ${name}`}
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </span>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};

@@ -11,15 +11,17 @@ export const BadgePill: React.FC<BadgePillProps> = ({ level, size = 'md' }) => {
 
   switch (level) {
     case 'VIP':
-      badgeStyles = 'bg-amber-50 text-amber-800 border-amber-200 font-bold';
+      // Vermelho brasa
+      badgeStyles = 'bg-red-50 text-red-800 border-red-300 font-bold';
       break;
-    case 'ESPECIAL':
-      // Azul Safira clean - Apenas o texto "ESPECIAL"
-      badgeStyles = 'bg-blue-50 text-blue-700 border-blue-200 font-bold';
+    case 'PATROCINADOR':
+      // Verde água / teal
+      badgeStyles = 'bg-teal-50 text-teal-800 border-teal-300 font-bold';
       break;
     case 'SILVER':
     default:
-      badgeStyles = 'bg-slate-100 text-slate-700 border-slate-200 font-semibold';
+      // Prateado
+      badgeStyles = 'bg-slate-100 text-slate-700 border-slate-300 font-semibold';
       break;
   }
 

@@ -5,6 +5,7 @@ import { Navbar } from './components/Navbar';
 import { LoginPage } from './pages/LoginPage';
 import { ClosersPage } from './pages/ClosersPage';
 import { RecepcaoPage } from './pages/RecepcaoPage';
+import { AdminPage } from './pages/AdminPage';
 import { PublicBadgePage } from './pages/PublicBadgePage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
@@ -12,6 +13,9 @@ const RootRedirect: React.FC = () => {
   const { userSession } = useApp();
   if (!userSession.role) {
     return <Navigate to="/login" replace />;
+  }
+  if (userSession.role === 'ADMIN') {
+    return <Navigate to="/admin" replace />;
   }
   return <Navigate to={userSession.role === 'CLOSER' ? '/closers' : '/recepcao'} replace />;
 };
@@ -36,11 +40,14 @@ export const App: React.FC = () => {
                 }
               />
 
+              {/* Recepção não exige login — acesso direto pela URL */}
+              <Route path="/recepcao" element={<RecepcaoPage />} />
+
               <Route
-                path="/recepcao"
+                path="/admin"
                 element={
-                  <ProtectedRoute allowedRole="RECEPCAO">
-                    <RecepcaoPage />
+                  <ProtectedRoute allowedRole="ADMIN">
+                    <AdminPage />
                   </ProtectedRoute>
                 }
               />

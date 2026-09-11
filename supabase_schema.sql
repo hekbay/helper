@@ -7,7 +7,6 @@
 CREATE TABLE IF NOT EXISTS public.attendees (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
-  email TEXT,
   phone TEXT,
   instagram TEXT,
   level TEXT NOT NULL CHECK (level IN ('VIP', 'SILVER')),
@@ -21,7 +20,25 @@ CREATE TABLE IF NOT EXISTS public.attendees (
   is_mentee BOOLEAN DEFAULT FALSE,
   near_renewal BOOLEAN DEFAULT FALSE,
   photo_url TEXT,
-  expert_note TEXT,
+
+  -- Acompanhante
+  is_accompanied BOOLEAN DEFAULT FALSE,
+  accompanied_by TEXT CHECK (accompanied_by IN ('Esposo(a)', 'Professor parceiro', 'Colaborador', 'Amigo')),
+  companion_name TEXT,
+
+  -- Situação de mentoria
+  current_mentorship TEXT,
+  cycle TEXT,
+  cycle_end_date TEXT,
+  is_paying BOOLEAN DEFAULT FALSE,
+  payment_method TEXT CHECK (payment_method IN ('Boleto', 'Cartão de Crédito')),
+  installment_value TEXT,
+  remaining_installments INTEGER,
+
+  -- Oferta
+  offer_to_make TEXT,
+  special_condition TEXT,
+
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -34,9 +51,20 @@ CREATE TABLE IF NOT EXISTS public.closer_notes (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
+-- 2b. Tabela da Equipe de Closers (nomes selecionáveis no login)
+CREATE TABLE IF NOT EXISTS public.closers (
+  name TEXT PRIMARY KEY,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+INSERT INTO public.closers (name) VALUES
+  ('Carla'), ('Davi'), ('Emmy'), ('Ricardo'), ('Everton')
+ON CONFLICT (name) DO NOTHING;
+
 -- 3. Habilitar RLS e Permissões Públicas
 ALTER TABLE public.attendees ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.closer_notes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.closers ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Acesso Leitura e Escrita Attendees" ON public.attendees;
 CREATE POLICY "Acesso Leitura e Escrita Attendees" ON public.attendees FOR ALL USING (true) WITH CHECK (true);
@@ -44,11 +72,34 @@ CREATE POLICY "Acesso Leitura e Escrita Attendees" ON public.attendees FOR ALL U
 DROP POLICY IF EXISTS "Acesso Leitura e Escrita Closer Notes" ON public.closer_notes;
 CREATE POLICY "Acesso Leitura e Escrita Closer Notes" ON public.closer_notes FOR ALL USING (true) WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Acesso Leitura e Escrita Closers" ON public.closers;
+CREATE POLICY "Acesso Leitura e Escrita Closers" ON public.closers FOR ALL USING (true) WITH CHECK (true);
+
 -- 4. Inserção dos Dados Iniciais (Seed Data com a Lógica do Fluxograma)
-INSERT INTO public.attendees (id, name, email, phone, instagram, level, is_special, is_sponsor, status, is_flexge, is_present, check_in_time, is_mentee, near_renewal, photo_url, expert_note) VALUES
-('rise-vip-001', 'Carolina Santos Mendes', 'carolina.mendes@englishteach.com', '(11) 98765-4321', '@carol.englishtips', 'VIP', true, false, 'CONFIRMED', true, true, '08:45', true, true, 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&auto=format&fit=crop&q=80', 'Professora de Business English em expansão. VIP com perfil ESPECIAL.'),
-('rise-vip-002', 'Dr. Roberto Magalhães', 'roberto@idiomaselite.com.br', '(21) 99887-1122', '@prof.robertomagalhaes', 'VIP', true, false, 'CONFIRMED', false, true, '08:30', true, false, 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&auto=format&fit=crop&q=80', 'Ingresso VIP com perfil ESPECIAL.'),
-('rise-vip-003', 'Fernanda Lima Alencar', 'fernanda@teachersclub.com', '(19) 97112-3344', '@fer.englishcoach', 'VIP', false, false, 'CONFIRMED', false, true, '08:50', false, false, 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&auto=format&fit=crop&q=80', 'Ingresso VIP Padrão (CRACHÁ VIP DOURADO). Lead quentíssima de alta renda!'),
-('rise-patro-001', 'Henrique Flexge (Patrocinador)', 'henrique@flexge.com', '(11) 97777-8888', '@flexge.oficial', 'VIP', false, true, 'CONFIRMED', true, true, '08:15', false, false, 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80', 'Patrocinador Oficial do Evento (Flexge Platform).'),
-('rise-slv-001', 'Marcelo Augusto Prado', 'marcelo.prado@polyglot.com.br', '(41) 98844-5566', '@marceloprado.esl', 'SILVER', false, false, 'CONFIRMED', false, true, '09:10', false, false, 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80', 'Ingresso SILVER (CRACHÁ SILVER PRATA).')
+INSERT INTO public.attendees (
+  id, name, phone, instagram, level, is_special, is_sponsor, status, is_flexge, is_present, check_in_time,
+  is_mentee, near_renewal, photo_url, is_accompanied, accompanied_by, companion_name,
+  current_mentorship, cycle, cycle_end_date, is_paying, payment_method, installment_value, remaining_installments,
+  offer_to_make, special_condition
+) VALUES
+('rise-vip-001', 'Carolina Santos Mendes', '(11) 98765-4321', '@carol.englishtips', 'VIP', true, false, 'CONFIRMED', true, true, '2026-09-12T08:45:00-03:00',
+  true, true, 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&auto=format&fit=crop&q=80', true, 'Esposo(a)', 'Marcos Mendes',
+  'Professores de Elite', '3º ciclo', '15/12/2026', true, 'Cartão de Crédito', 'R$ 897,00', 4,
+  'Mastermind', 'Upgrade com desconto de fidelidade (3+ ciclos)'),
+('rise-vip-002', 'Dr. Roberto Magalhães', '(21) 99887-1122', '@prof.robertomagalhaes', 'VIP', true, false, 'CONFIRMED', false, true, '2026-09-12T08:30:00-03:00',
+  true, false, 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&auto=format&fit=crop&q=80', false, NULL, NULL,
+  'Professores de Elite', '1º ciclo', '20/03/2027', true, 'Boleto', 'R$ 897,00', 10,
+  'Mastermind', NULL),
+('rise-vip-003', 'Fernanda Lima Alencar', '(19) 97112-3344', '@fer.englishcoach', 'VIP', false, false, 'CONFIRMED', false, true, '2026-09-12T08:50:00-03:00',
+  false, false, 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&auto=format&fit=crop&q=80', false, NULL, NULL,
+  NULL, NULL, NULL, false, NULL, NULL, NULL,
+  'Mentoria Rise de Entrada', 'Condição especial de lançamento (veio do Silver)'),
+('rise-patro-001', 'Henrique Flexge (Patrocinador)', '(11) 97777-8888', '@flexge.oficial', 'VIP', false, true, 'CONFIRMED', true, true, '2026-09-12T08:15:00-03:00',
+  false, false, 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80', true, 'Colaborador', 'Time Flexge',
+  NULL, NULL, NULL, false, NULL, NULL, NULL,
+  NULL, 'Patrocinador Oficial do Evento (Flexge Platform)'),
+('rise-slv-001', 'Marcelo Augusto Prado', '(41) 98844-5566', '@marceloprado.esl', 'SILVER', false, false, 'CONFIRMED', false, true, '2026-09-12T09:10:00-03:00',
+  false, false, 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80', false, NULL, NULL,
+  NULL, NULL, NULL, false, NULL, NULL, NULL,
+  'Mentoria Rise de Entrada', NULL)
 ON CONFLICT (id) DO NOTHING;
