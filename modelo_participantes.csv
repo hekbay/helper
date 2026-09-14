@@ -1,2 +1,2 @@
-id,name,phone,instagram,level,isSpecial,isSponsor,isFlexge,isMeteoric,isMentee,nearRenewal,photoUrl,isAccompanied,accompaniedBy,companionName,currentMentorship,cycle,cycleEndDate,isPaying,paymentMethod,installmentValue,remainingInstallments,offerToMake,specialCondition
-rise-vip-005,Ana Paula Di Dio,(11) 90000-0000,@anapaula,VIP,FALSE,FALSE,FALSE,FALSE,TRUE,FALSE,,TRUE,Esposo(a),Nome do acompanhante,Professores de Elite,3º ciclo,15/12/2026,TRUE,Boleto,897,4,Mastermind,
+id,name,phone,instagram,level,isSponsor,isMentee,nearRenewal,photoUrl,isAccompanied,accompaniedBy,companionName,currentMentorship,cycle,cycleEndDate,mentorshipRemaining,isPaying,paymentMethod,installmentValue,remainingInstallments,offerToMake,specialCondition
+rise-vip-005,Ana Paula Di Dio,(11) 90000-0000,@anapaula,VIP,FALSE,TRUE,FALSE,,TRUE,Esposo(a),Nome do acompanhante,Professores de Elite,3º ciclo,15/12/2026,2 meses,TRUE,Boleto,897,4,Mastermind,

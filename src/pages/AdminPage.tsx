@@ -1,21 +1,21 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import type { AccompaniedBy, Attendee, PaymentMethod, TicketLevel } from '../types/index';
-import { ShieldCheck, UserPlus, Trash2, Users, Plus, X } from 'lucide-react';
+import { ShieldCheck, UserPlus, Trash2, Users, Plus, X, Pencil, Save } from 'lucide-react';
+import { formatPhoneInput, formatCurrencyInput } from '../lib/format';
 
 const DEFAULT_PHOTO = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400';
 
 const ACCOMPANIED_BY_OPTIONS: AccompaniedBy[] = ['Esposo(a)', 'Professor parceiro', 'Colaborador', 'Amigo'];
 const PAYMENT_METHOD_OPTIONS: PaymentMethod[] = ['Boleto', 'Cartão de Crédito'];
 const MENTORSHIP_OPTIONS = ['Mentoria Partiu 10K', 'Professores de Elite'];
-const CYCLE_OPTIONS = ['1º ciclo', '2º ciclo', '3º ciclo', '4º ciclo', '5º ciclo'];
+const CYCLE_OPTIONS = ['1º ciclo', '2º ciclo', '3º ciclo', '4º ciclo', '5º ciclo', 'Finalizado'];
 
 const emptyForm = {
   name: '',
   phone: '',
   instagram: '',
   level: 'VIP' as TicketLevel,
-  isSpecial: false,
   isSponsor: false,
   isAccompanied: false,
   accompaniedBy: '' as AccompaniedBy | '',
@@ -23,57 +23,109 @@ const emptyForm = {
   currentMentorship: '',
   cycle: '',
   cycleEndDate: '',
+  mentorshipRemaining: '',
   isPaying: false,
   paymentMethod: '' as PaymentMethod | '',
   installmentValue: '',
   remainingInstallments: '',
+  mentorshipValue: '',
+  amountPaid: '',
+  creditBalance: '',
   offerToMake: '',
   specialCondition: ''
 };
 
+const attendeeToForm = (a: Attendee) => ({
+  name: a.name,
+  phone: a.phone,
+  instagram: a.instagram,
+  level: a.level,
+  isSponsor: a.isSponsor ?? false,
+  isAccompanied: a.isAccompanied,
+  accompaniedBy: (a.accompaniedBy ?? '') as AccompaniedBy | '',
+  companionName: a.companionName ?? '',
+  currentMentorship: a.currentMentorship,
+  cycle: a.cycle,
+  cycleEndDate: a.cycleEndDate,
+  mentorshipRemaining: a.mentorshipRemaining ?? '',
+  isPaying: a.isPaying,
+  paymentMethod: (a.paymentMethod ?? '') as PaymentMethod | '',
+  installmentValue: a.installmentValue ?? '',
+  remainingInstallments: a.remainingInstallments != null ? String(a.remainingInstallments) : '',
+  mentorshipValue: a.mentorshipValue ?? '',
+  amountPaid: a.amountPaid ?? '',
+  creditBalance: a.creditBalance ?? '',
+  offerToMake: a.offerToMake,
+  specialCondition: a.specialCondition ?? ''
+});
+
 export const AdminPage: React.FC = () => {
-  const { attendees, addAttendee, deleteAttendee, closerNames, addCloserName, removeCloserName } = useApp();
+  const { attendees, addAttendee, updateAttendee, deleteAttendee, closerNames, addCloserName, removeCloserName } = useApp();
 
   const [form, setForm] = useState(emptyForm);
   const [newCloserName, setNewCloserName] = useState('');
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
-  const handleAddAttendee = (e: React.FormEvent) => {
+  const startEdit = (a: Attendee) => {
+    setEditingId(a.id);
+    setForm(attendeeToForm(a));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setForm(emptyForm);
+  };
+
+  const handleSubmitAttendee = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim()) return;
 
-    const newAttendee: Attendee = {
-      id: 'att-' + Date.now().toString(36),
+    const sharedFields = {
       name: form.name.trim(),
       phone: form.phone.trim(),
       instagram: form.instagram.trim(),
       level: form.level,
-      isSpecial: form.isSpecial,
       isSponsor: form.isSponsor,
-      status: 'CONFIRMED',
-      isFlexge: false,
-      isMeteoric: false,
-      isPresent: false,
-      checkInTime: null,
-      isMentee: false,
-      nearRenewal: false,
-      photoUrl: DEFAULT_PHOTO,
       isAccompanied: form.isAccompanied,
       accompaniedBy: form.accompaniedBy || undefined,
       companionName: form.companionName.trim(),
       currentMentorship: form.currentMentorship.trim(),
       cycle: form.cycle.trim(),
       cycleEndDate: form.cycleEndDate.trim(),
+      mentorshipRemaining: form.mentorshipRemaining.trim(),
       isPaying: form.isPaying,
       paymentMethod: form.paymentMethod || undefined,
       installmentValue: form.installmentValue.trim(),
       remainingInstallments: form.remainingInstallments ? Number(form.remainingInstallments) : undefined,
+      mentorshipValue: form.mentorshipValue.trim(),
+      amountPaid: form.amountPaid.trim(),
+      creditBalance: form.creditBalance.trim(),
       offerToMake: form.offerToMake.trim(),
-      specialCondition: form.specialCondition.trim(),
-      closerNotes: []
+      specialCondition: form.specialCondition.trim()
     };
 
-    addAttendee(newAttendee);
+    if (editingId) {
+      const original = attendees.find(a => a.id === editingId);
+      if (!original) return;
+      updateAttendee({ ...original, ...sharedFields });
+      setEditingId(null);
+    } else {
+      const newAttendee: Attendee = {
+        id: 'att-' + Date.now().toString(36),
+        ...sharedFields,
+        status: 'CONFIRMED',
+        isPresent: false,
+        checkInTime: null,
+        isMentee: false,
+        nearRenewal: false,
+        photoUrl: DEFAULT_PHOTO,
+        closerNotes: []
+      };
+      addAttendee(newAttendee);
+    }
+
     setForm(emptyForm);
   };
 
@@ -97,15 +149,29 @@ export const AdminPage: React.FC = () => {
       </div>
 
       {/* Participantes */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-4 sm:p-5 border-b border-slate-200">
+      <div
+        className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition ${
+          editingId ? 'border-slate-400 ring-1 ring-slate-300' : 'border-slate-200'
+        }`}
+      >
+        <div className="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between gap-3">
           <h2 className="text-sm font-extrabold text-slate-900 flex items-center gap-1.5">
             <UserPlus className="w-4 h-4 text-slate-500" />
-            <span>Adicionar Participante</span>
+            <span>{editingId ? `Editando: ${form.name}` : 'Adicionar Participante'}</span>
           </h2>
+          {editingId && (
+            <button
+              type="button"
+              onClick={cancelEdit}
+              className="text-xs font-bold text-slate-500 hover:text-slate-800 flex items-center gap-1"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span>Cancelar edição</span>
+            </button>
+          )}
         </div>
 
-        <form onSubmit={handleAddAttendee} className="p-4 sm:p-5 space-y-3">
+        <form onSubmit={handleSubmitAttendee} className="p-4 sm:p-5 space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <input
               type="text"
@@ -119,7 +185,8 @@ export const AdminPage: React.FC = () => {
               type="text"
               placeholder="Telefone"
               value={form.phone}
-              onChange={e => setForm({ ...form, phone: e.target.value })}
+              onChange={e => setForm({ ...form, phone: formatPhoneInput(e.target.value) })}
+              maxLength={15}
               className="bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-900"
             />
             <input
@@ -140,14 +207,6 @@ export const AdminPage: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap gap-4 text-xs pt-1">
-            <label className="flex items-center gap-1.5 font-semibold text-slate-700">
-              <input
-                type="checkbox"
-                checked={form.isSpecial}
-                onChange={e => setForm({ ...form, isSpecial: e.target.checked })}
-              />
-              <span>É Especial? (perfil, não muda o crachá)</span>
-            </label>
             <label className="flex items-center gap-1.5 font-semibold text-slate-700">
               <input
                 type="checkbox"
@@ -222,6 +281,13 @@ export const AdminPage: React.FC = () => {
                 onChange={e => setForm({ ...form, cycleEndDate: e.target.value })}
                 className="bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-slate-900"
               />
+              <input
+                type="text"
+                placeholder="Quanto está sobrando da mentoria (ex: 2 meses)"
+                value={form.mentorshipRemaining}
+                onChange={e => setForm({ ...form, mentorshipRemaining: e.target.value })}
+                className="bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-900"
+              />
 
               <label className="flex items-center gap-1.5 font-semibold text-xs text-slate-700 sm:col-span-2">
                 <input
@@ -248,7 +314,7 @@ export const AdminPage: React.FC = () => {
                     type="text"
                     placeholder="Valor da parcela (ex: R$ 897,00)"
                     value={form.installmentValue}
-                    onChange={e => setForm({ ...form, installmentValue: e.target.value })}
+                    onChange={e => setForm({ ...form, installmentValue: formatCurrencyInput(e.target.value) })}
                     className="bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-900"
                   />
                   <input
@@ -261,6 +327,28 @@ export const AdminPage: React.FC = () => {
                   />
                 </>
               )}
+
+              <input
+                type="text"
+                placeholder="Valor da mentoria (ex: R$ 8.970,00)"
+                value={form.mentorshipValue}
+                onChange={e => setForm({ ...form, mentorshipValue: formatCurrencyInput(e.target.value) })}
+                className="bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-900"
+              />
+              <input
+                type="text"
+                placeholder="Valor pago (ex: R$ 5.382,00)"
+                value={form.amountPaid}
+                onChange={e => setForm({ ...form, amountPaid: formatCurrencyInput(e.target.value) })}
+                className="bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-900"
+              />
+              <input
+                type="text"
+                placeholder="Valor em haver (tempo restante em dinheiro)"
+                value={form.creditBalance}
+                onChange={e => setForm({ ...form, creditBalance: formatCurrencyInput(e.target.value) })}
+                className="bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-900"
+              />
             </div>
           </div>
 
@@ -289,8 +377,8 @@ export const AdminPage: React.FC = () => {
             type="submit"
             className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2.5 px-5 rounded-xl flex items-center justify-center gap-1.5 transition"
           >
-            <Plus className="w-4 h-4" />
-            <span>Adicionar Participante</span>
+            {editingId ? <Save className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+            <span>{editingId ? 'Salvar Alterações' : 'Adicionar Participante'}</span>
           </button>
         </form>
 
@@ -337,13 +425,22 @@ export const AdminPage: React.FC = () => {
                     </button>
                   </div>
                 ) : (
-                  <button
-                    onClick={() => setConfirmDeleteId(a.id)}
-                    className="p-2 rounded-lg text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition shrink-0"
-                    title="Excluir participante"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      onClick={() => startEdit(a)}
+                      className="p-2 rounded-lg text-slate-600 hover:bg-slate-100 border border-transparent hover:border-slate-200 transition"
+                      title="Editar participante"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => setConfirmDeleteId(a.id)}
+                      className="p-2 rounded-lg text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition"
+                      title="Excluir participante"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 )}
               </div>
             ))

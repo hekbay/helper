@@ -14,7 +14,6 @@ import {
   Phone,
   ExternalLink,
   BookOpen,
-  Award,
   Users,
   GraduationCap,
   CreditCard,
@@ -22,7 +21,7 @@ import {
 } from 'lucide-react';
 import type { BadgeLevel } from '../types/index';
 import { getBadgeLevel } from '../types/index';
-import { formatCheckInTime } from '../lib/format';
+import { formatCheckInTime, formatDateBR } from '../lib/format';
 
 const InstagramIcon: React.FC<{ className?: string }> = ({ className = "w-4 h-4" }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -297,28 +296,8 @@ export const ClosersPage: React.FC = () => {
                     </a>
                   </div>
 
-                  {/* Context Badges (Mentee vs VIP Non-Mentee Pitch Target) */}
+                  {/* Context Badges */}
                   <div className="flex flex-wrap items-center gap-1.5 text-xs pt-0.5">
-                    {item.level === 'VIP' && !item.isSponsor && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-red-50 text-red-900 border border-red-300 flex items-center space-x-1">
-                        <Sparkles className="w-3 h-3 text-red-700" />
-                        <span>🔥 Crachá VIP (Alvo no Pitch)</span>
-                      </span>
-                    )}
-
-                    {item.level === 'VIP' && item.isSpecial && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-200 flex items-center space-x-1">
-                        <Award className="w-3 h-3 text-blue-600" />
-                        <span>⭐ Perfil Especial</span>
-                      </span>
-                    )}
-
-                    {item.isSponsor && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-teal-50 text-teal-800 border border-teal-300">
-                        🤝 Patrocinador (Crachá Verde Água)
-                      </span>
-                    )}
-
                     {item.nearRenewal && (
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200 flex items-center space-x-1">
                         <RotateCw className="w-3 h-3 text-rose-600" />
@@ -419,7 +398,7 @@ export const ClosersPage: React.FC = () => {
                     </div>
 
                     {/* Mentoria & Pagamento */}
-                    {(item.currentMentorship || item.isPaying) && (
+                    {(item.currentMentorship || item.isPaying || item.mentorshipValue || item.amountPaid || item.creditBalance) && (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
                         <div className="p-3 rounded-xl bg-white border border-slate-200 space-y-1">
                           <div className="text-slate-400 font-medium flex items-center space-x-1 mb-0.5">
@@ -429,7 +408,10 @@ export const ClosersPage: React.FC = () => {
                           <div className="text-slate-900 font-bold">{item.currentMentorship || '—'}</div>
                           {item.cycle && <div className="text-slate-600">{item.cycle}</div>}
                           {item.cycleEndDate && (
-                            <div className="text-slate-500">Finaliza em: {item.cycleEndDate}</div>
+                            <div className="text-slate-500">Finaliza em: {formatDateBR(item.cycleEndDate)}</div>
+                          )}
+                          {item.mentorshipRemaining && (
+                            <div className="text-slate-500">Sobrando: {item.mentorshipRemaining}</div>
                           )}
                         </div>
 
@@ -452,6 +434,15 @@ export const ClosersPage: React.FC = () => {
                                 </div>
                               )}
                             </>
+                          )}
+                          {item.mentorshipValue && (
+                            <div className="text-slate-600">Valor da mentoria: {item.mentorshipValue}</div>
+                          )}
+                          {item.amountPaid && (
+                            <div className="text-slate-600">Valor pago: {item.amountPaid}</div>
+                          )}
+                          {item.creditBalance && (
+                            <div className="text-emerald-700 font-bold">Em haver: {item.creditBalance}</div>
                           )}
                         </div>
                       </div>

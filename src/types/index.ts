@@ -17,11 +17,8 @@ export interface Attendee {
   phone: string;
   instagram: string;
   level: TicketLevel;      // 'VIP' ou 'SILVER'
-  isSpecial?: boolean;     // Marcação 'É ESPECIAL?' (para Ingressos VIP)
   isSponsor?: boolean;     // Marcação 'Patrocinador?'
   status: ConfirmationStatus;
-  isFlexge?: boolean;
-  isMeteoric?: boolean;
   isPresent: boolean;
   checkInTime?: string | null;
   isMentee: boolean;
@@ -38,10 +35,14 @@ export interface Attendee {
   currentMentorship: string;
   cycle: string;
   cycleEndDate: string;
+  mentorshipRemaining?: string;
   isPaying: boolean;
   paymentMethod?: PaymentMethod;
   installmentValue?: string;
   remainingInstallments?: number;
+  mentorshipValue?: string;   // Valor total da mentoria
+  amountPaid?: string;        // Valor já pago
+  creditBalance?: string;     // Valor em haver (tempo restante convertido em dinheiro)
 
   // Oferta
   offerToMake: string;
